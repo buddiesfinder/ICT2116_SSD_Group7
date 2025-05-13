@@ -1,7 +1,7 @@
 // this file is used to define the layout of the application
 // things like the navbar, footer, and other components that are common across all pages
 import './globals.css';
-import { UserProvider } from './contexts/UserContext';
+import { UserProvider } from './(page controller)/(views)/contexts/UserContext';
 import Navbar from './(components)/navbar'; 
 import type { Metadata } from 'next';
 
