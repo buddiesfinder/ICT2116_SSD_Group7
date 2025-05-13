@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import { useUser } from '@/app/(page controller)/(views)/contexts/UserContext';
+import { useUser } from '@/app/(boundary)/(page controller)/(views)/contexts/UserContext';
 
 const links = [
   { href: '/', label: 'Home' },
