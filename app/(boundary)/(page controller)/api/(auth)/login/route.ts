@@ -2,8 +2,6 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
-import { validateUser } from '@/lib/fakeUserStore';
-
 import { loginHandler } from '@/app/(control)/loginHandler.route';
 
 export async function POST(request: NextRequest) {
@@ -29,6 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Call the login handler
     const result = await loginHandler(email, password);
+    console.log("result: ", result);
 
     // Return appropriate response based on login result
     return NextResponse.json(result, {
