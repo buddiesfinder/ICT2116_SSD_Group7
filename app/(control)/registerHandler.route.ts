@@ -5,8 +5,8 @@ export async function registerHandler(email: string, password: string): Promise<
 
   try {
     const [result] = await db.query(
-      'INSERT INTO SSD.User (email, password, role, last_logged_in, suspended) VALUES (?, ?, ?, ?, ?)',
-      [email, password, 'procurer', new Date(), false]
+      'INSERT INTO SSD.User (email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, ?)',
+      [email, password, 'procurer', 0, false]
     );
 
     console.log('Insert successful:', result);

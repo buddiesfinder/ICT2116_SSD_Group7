@@ -28,8 +28,6 @@ export async function POST(request: NextRequest) {
     // Call the login handler
     const result = await loginHandler(email, password);
 
-    console.log("result ", result);
-
     // return result in http response format (with status code)
     const response = NextResponse.json( {
       success: result.success, 
@@ -39,10 +37,10 @@ export async function POST(request: NextRequest) {
 
     // Set token of log in.
       if (result.success && result.token) {
-        response.cookies.set('token', result.token, {
+        response.cookies.set('refresh_token', result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 900, // 15 minutes
+        maxAge: 900, // maximum time it can live on the browser in seconds
         path: '/',
       });
     }

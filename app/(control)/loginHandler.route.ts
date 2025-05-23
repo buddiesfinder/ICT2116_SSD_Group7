@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'; // adjust the path as needed
 import { signJwt } from '@/lib/jwt';
+import { sessionHandler } from './sessionHandler.route';
 
 export async function loginHandler(email: string, password: string): Promise<{ 
   success: boolean; 
@@ -25,22 +26,33 @@ export async function loginHandler(email: string, password: string): Promise<{
         message: 'Invalid email or password'
       };
     }
-    
-    // Issue JWT Token
+
+    // Insert Session ID Token into DB
+    const session_creation = await sessionHandler(users[0].user_id);
+    if (!session_creation.success) {
+      return {
+        success: session_creation.success,
+        message: session_creation.message
+      }
+    }
+
+
+    // Issue JWT Token (With Session_ID)
     const token = signJwt({
       // Payload 
       userId: users[0].user_id, 
-      role: users[0].role 
+      user_email: users[0].email,
+      role: users[0].role,
+      session_token: session_creation.session_token,
     }, 
     // Server Secret
     process.env.JWT_SECRET as string, 
     // TTL
-    { expiresIn: 900 });
+    { expiresIn: 7 * 24 * 60 * 60 }); // 7 days as this is the refresh token. Set token cookie name in /api/login/route.ts
     
     return {
       success: true,
       message: 'Login successful',
-      // userId: userId,
       token: token
     };
     
