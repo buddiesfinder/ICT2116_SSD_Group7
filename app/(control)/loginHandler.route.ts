@@ -7,7 +7,6 @@ export async function loginHandler(email: string, password: string): Promise<{
   userId?: number; 
   token?: string;
 }> {
-  console.log('Login handler called with email:', email);
   
   try {
     // Query the database for a user with matching email and password
@@ -28,7 +27,15 @@ export async function loginHandler(email: string, password: string): Promise<{
     }
     
     // Issue JWT Token
-    const token = signJwt({ userId: users[0].user_id, role: users[0].role }, process.env.JWT_SECRET as string, { expiresIn: 900 });
+    const token = signJwt({
+      // Payload 
+      userId: users[0].user_id, 
+      role: users[0].role 
+    }, 
+    // Server Secret
+    process.env.JWT_SECRET as string, 
+    // TTL
+    { expiresIn: 900 });
     
     return {
       success: true,

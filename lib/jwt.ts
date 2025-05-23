@@ -42,7 +42,7 @@ export function signJwt(
   };
 
   const iat = Math.floor(Date.now() / 1000);  // Issued at time seconds
-  const exp = iat + (options?.expiresIn || 3600); // Expiration in seconds.
+  const exp = iat + (options?.expiresIn || 3600); // Expiration in seconds. Default is 1 hour TTL.
 
   const fullPayload: JwtPayload = {
     ...payload,

@@ -27,12 +27,27 @@ export async function POST(request: NextRequest) {
 
     // Call the login handler
     const result = await loginHandler(email, password);
-    console.log("result: ", result);
 
-    // Return appropriate response based on login result
-    return NextResponse.json(result, {
+    console.log("result ", result);
+
+    // return result in http response format (with status code)
+    const response = NextResponse.json( {
+      success: result.success, 
       status: result.success ? 200 : 401,
+      message: result.message
     });
+
+    // Set token of log in.
+      if (result.success && result.token) {
+        response.cookies.set('token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 900, // 15 minutes
+        path: '/',
+      });
+    }
+    return response;
+
   } catch (error) {
     console.error('Login API error:', error);
     return NextResponse.json(
