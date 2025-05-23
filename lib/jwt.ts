@@ -67,21 +67,21 @@ export function signJwt(
 
 // === JWT decode (no verify) ===
 
-// export function decodeJwt(token: string): {
-//   header: JwtHeader;
-//   payload: Record<string, any>;
-// } {
-//   const [headerB64, payloadB64] = token.split('.');
+export function decodeJwt(token: string): {
+  header: JwtHeader;
+  payload: Record<string, any>;
+} {
+  const [headerB64, payloadB64] = token.split('.');
 
-//   if (!headerB64 || !payloadB64) {
-//     throw new Error('Invalid token format');
-//   }
+  if (!headerB64 || !payloadB64) {
+    throw new Error('Invalid token format');
+  }
 
-//   const header = JSON.parse(base64urlDecode(headerB64));
-//   const payload = JSON.parse(base64urlDecode(payloadB64));
+  const header = JSON.parse(base64urlDecode(headerB64));
+  const payload = JSON.parse(base64urlDecode(payloadB64));
 
-//   return { header, payload };
-// }
+  return { header, payload };
+}
 
 // === JWT verify ===
 
