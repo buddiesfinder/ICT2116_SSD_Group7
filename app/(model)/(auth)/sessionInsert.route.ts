@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';  // Your DB client (e.g. mysql2/promise)
 import { v4 as uuidv4 } from 'uuid';
 
-export async function sessionHandler(user_id: number): Promise<{
+export async function sessionInsert(user_id: number): Promise<{
   success: boolean;
   message: string;
   session_token?: string;

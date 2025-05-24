@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'; // adjust the path as needed
 import { signJwt } from '@/lib/jwt';
-import { sessionHandler } from './sessionHandler.route';
+import { sessionInsert } from './sessionInsert.route';
 
 export async function loginHandler(email: string, password: string): Promise<{ 
   success: boolean; 
@@ -28,7 +28,7 @@ export async function loginHandler(email: string, password: string): Promise<{
     }
 
     // Insert Session ID Token into DB
-    const session_creation = await sessionHandler(users[0].user_id);
+    const session_creation = await sessionInsert(users[0].user_id);
     if (!session_creation.success) {
       return {
         success: session_creation.success,
