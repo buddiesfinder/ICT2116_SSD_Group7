@@ -2,7 +2,7 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
-import { loginHandler } from '@/app/(control)/loginHandler.route';
+import { loginHandler } from '@/app/(model)/loginHandler.route';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         response.cookies.set('refresh_token', result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 900, // maximum time it can live on the browser in seconds
+        maxAge: 30 * 24 * 60 * 60, // maximum time it can live on the browser in seconds (30 days)
         path: '/',
       });
     }
