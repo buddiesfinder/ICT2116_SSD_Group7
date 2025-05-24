@@ -2,7 +2,7 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
-import { loginHandler } from '@/app/(model)/loginHandler.route';
+import { loginHandler } from '@/app/(model)/(auth)/loginHandler.route';
 
 export async function POST(request: NextRequest) {
   try {

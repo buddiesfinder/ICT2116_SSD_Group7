@@ -46,7 +46,7 @@ export async function loginHandler(email: string, password: string): Promise<{
       session_token: session_creation.session_token,
     }, 
     // Server Secret
-    process.env.JWT_SECRET as string, 
+    process.env.REFRESH_JWT as string, 
     // TTL
     { expiresIn: 7 * 24 * 60 * 60 }); // 7 days as this is the refresh token. Set token cookie name in /api/login/route.ts
     
