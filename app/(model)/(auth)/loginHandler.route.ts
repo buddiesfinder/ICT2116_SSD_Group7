@@ -12,7 +12,7 @@ export async function loginHandler(email: string, password: string): Promise<{
   try {
     // Query the database for a user with matching email and password
     const [rows] = await db.query(
-      'SELECT user_id, role FROM SSD.User WHERE email = ? AND password = ?',
+      'SELECT user_id, email, role FROM SSD.User WHERE email = ? AND password = ?',
       [email, password]
     );
     
