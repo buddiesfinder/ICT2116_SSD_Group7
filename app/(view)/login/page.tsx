@@ -1,18 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser } from '@/app/(view)/contexts/UserContext';
-import { useRouter } from 'next/navigation'; // ✅ Import
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { login } = useUser();
-  const router = useRouter(); // ✅ Hook
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Submitting login with:', email, password);
 
     const res = await fetch('/api/login', {
       method: 'POST',
@@ -21,10 +18,8 @@ export default function LoginPage() {
     });
 
     const data = await res.json();
-    console.log('Login response:', data);
 
     if (data.success) {
-      login({ email });
       router.push('/'); // ✅ Redirect to homepage
     } else {
       alert(data.message);
