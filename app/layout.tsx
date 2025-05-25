@@ -1,23 +1,34 @@
-// this file is used to define the layout of the application
-// things like the navbar, footer, and other components that are common across all pages
+// app/layout.tsx (Server Component)
 import './globals.css';
-import { UserProvider } from './(boundary)/(page controller)/(views)/contexts/UserContext';
-import Navbar from './(components)/navbar'; 
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { decodeJwt } from '@/lib/jwt';
+import Navbar from './(components)/navbar'; 
 
 export const metadata: Metadata = {
   title: 'Event Booking App',
   description: 'Login and Register Demo',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('refresh_token')?.value;
+
+  let email: string | null = null;
+  if (token) {
+    try {
+      const { payload } = decodeJwt(token);
+      email = payload.user_email;
+    } catch (e) {
+      console.error('Invalid token', e);
+    }
+  }
+
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        <UserProvider>
-          <Navbar />
-          <main className="p-6">{children}</main>
-        </UserProvider>
+        <Navbar email={email} /> {/* ✅ Server-only value passed to Navbar */}
+        <main className="p-6">{children}</main>
       </body>
     </html>
   );

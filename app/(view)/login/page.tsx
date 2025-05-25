@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser } from '@/app/(boundary)/(page controller)/(views)/contexts/UserContext';
+import { useUser } from '@/app/(view)/contexts/UserContext';
 import { useRouter } from 'next/navigation'; // ✅ Import
 
 export default function LoginPage() {

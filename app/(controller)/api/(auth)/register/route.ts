@@ -2,8 +2,7 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
-import { addUser } from '@/lib/fakeUserStore';
-import { registerHandler } from '@/app/(control)/registerHandler.route';
+import { registerHandler } from '@/app/(model)/(auth)/registerHandler.route';
 
 export async function POST(request: NextRequest) {
   const { email, password } = await request.json();
@@ -12,10 +11,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: 'Missing fields' }, { status: 400 });
   }
 
+  // Called from control class
   const result = await registerHandler(email, password);
-  const success = result.success;
 
-  console.log('User registered:', email);
-
-  return NextResponse.json({ success: true, message: 'User registered successfully' });
+  return NextResponse.json({ success: result.success, message: result.message });
 }

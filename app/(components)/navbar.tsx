@@ -3,23 +3,21 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
-import { useUser } from '@/app/(boundary)/(page controller)/(views)/contexts/UserContext';
 
 const links = [
   { href: '/', label: 'Home' },
+  { href: '/event', label: 'Events' },
   { href: '/search', label: 'Search' },
   { href: '/admin', label: 'Admin' },
   { href: '/profile', label: 'Profile' },
   { href: '/payment', label: 'Payment' },
 ];
 
-export default function Navbar() {
+export default function Navbar({ email }: { email: string | null }) {
   const pathname = usePathname();
-  const { user, logout } = useUser();
 
   return (
     <nav className="bg-zinc-900 text-white px-6 py-4 border-b border-zinc-700 flex justify-between items-center">
-      {/* Left: Main Links */}
       <ul className="flex gap-6 list-none m-0 p-0">
         {links.map((link) => (
           <li key={link.href}>
@@ -35,36 +33,20 @@ export default function Navbar() {
         ))}
       </ul>
 
-      {/* Right: Auth section */}
       <div className="flex items-center gap-4">
-        {!user ? (
+        {!email ? (
           <>
-            <Link
-              href="/login"
-              className={`hover:underline ${
-                pathname === '/login' ? 'underline font-bold' : ''
-              }`}
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className={`hover:underline ${
-                pathname === '/register' ? 'underline font-bold' : ''
-              }`}
-            >
-              Register
-            </Link>
+            <Link href="/login" className="hover:underline">Login</Link>
+            <Link href="/register" className="hover:underline">Register</Link>
           </>
         ) : (
           <>
-            <span className="text-sm text-blue-300">Welcome, {user.email}</span>
-            <button
-              onClick={logout}
-              className="text-red-400 hover:underline text-sm"
-            >
-              Logout
-            </button>
+            <span className="text-sm text-blue-300">Welcome, {email}</span>
+            <form action="/api/logout" method="POST">
+              <button type="submit" className="text-red-400 hover:underline text-sm">
+                Logout
+              </button>
+            </form>
           </>
         )}
       </div>
