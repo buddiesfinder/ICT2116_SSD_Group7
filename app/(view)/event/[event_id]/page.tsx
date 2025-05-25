@@ -71,7 +71,7 @@ export default function EventDetailPage() {
               key={i}
               className="bg-zinc-800 p-3 rounded border border-zinc-600"
             >
-              <span className="font-semibold">{d.event_date}</span> |{' '}
+              <span className="font-semibold">{d.event_date.split('T')[0]}</span> |{' '}
               {d.start_time} - {d.end_time}
             </li>
           ))}
