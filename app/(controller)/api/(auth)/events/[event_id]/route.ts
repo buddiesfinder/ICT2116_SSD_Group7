@@ -11,14 +11,14 @@ export async function GET(_: NextRequest, { params }: { params: { event_id: stri
   const eventId = params.event_id;
   try {
     const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [eventId]);
+    const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
     const [datesResult]: any = await db.query('SELECT event_date, start_time, end_time FROM SSD.EventDate WHERE event_id = ?', [eventId]);
 
     const event = eventResult[0];
     if (!event) {
       return NextResponse.json({ success: false, message: 'Event not found' }, { status: 404 });
     }
-
-    return NextResponse.json({ success: true, event, dates: datesResult });
+    return NextResponse.json({ success: true, event, seatCategories: seatCategoryResult, dates: datesResult });
   } catch (err) {
     console.error('Error fetching event detail:', err);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
@@ -34,7 +34,8 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const location = formData.get('location') as string;
-    const price = parseFloat(formData.get('price') as string);
+    const categoriesRaw = formData.get('categories') as string;
+    const categories = JSON.parse(categoriesRaw);
     const file = formData.get('picture') as File;
     const datesRaw = formData.get('dates') as string;
     const dates = JSON.parse(datesRaw); // array of { event_date, start_time, end_time }
@@ -54,13 +55,22 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
     // Update event details
     if (imageUrl) {
       await db.query(
-        'UPDATE SSD.Event SET title = ?, picture = ?, description = ?, location = ?, price = ? WHERE event_id = ?',
-        [title, imageUrl, description, location, price, eventId]
+        'UPDATE SSD.Event SET title = ?, picture = ?, description = ?, location = ? WHERE event_id = ?',
+        [title, imageUrl, description, location, eventId]
       );
     } else {
       await db.query(
-        'UPDATE SSD.Event SET title = ?, description = ?, location = ?, price = ? WHERE event_id = ?',
-        [title, description, location, price, eventId]
+        'UPDATE SSD.Event SET title = ?, description = ?, location = ? WHERE event_id = ?',
+        [title, description, location, eventId]
+      );
+    }
+
+    // Update seat category pricing
+    await db.query('DELETE FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
+    for (const category of categories) {
+      await db.query(
+        'INSERT INTO SSD.SeatCategory (event_id, name, price) VALUES (?, ?, ?)',
+        [eventId, category.name, category.price]
       );
     }
 

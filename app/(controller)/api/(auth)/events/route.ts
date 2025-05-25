@@ -13,12 +13,14 @@ export async function POST(req: NextRequest) {
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;
     const location = formData.get('location') as string;
-    const price = parseFloat(formData.get('price') as string);
     const file = formData.get('picture') as File;
 
     // Get event_dates as a JSON string then parse
     const datesRaw = formData.get('dates') as string;
     const dates = JSON.parse(datesRaw); // expects [{ event_date: '2025-05-30', start_time: '18:00', end_time: '21:00' }, ...]
+
+    const categoriesRaw = formData.get('categories') as string;
+    const categories = JSON.parse(categoriesRaw); // [{ category_id: 1, name: 'Premium', price: '300' }, ...]
 
     if (!file || typeof file === 'string') {
       return NextResponse.json({ success: false, message: 'Invalid image' });
@@ -47,11 +49,19 @@ export async function POST(req: NextRequest) {
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.query(
-      'INSERT INTO SSD.Event (title, picture, description, location, created_at, price) VALUES (?, ?, ?, ?, NOW(), ?)',
-      [title, imageUrl, description, location, price]
+      'INSERT INTO SSD.Event (title, picture, description, location, created_at) VALUES (?, ?, ?, ?, NOW())',
+      [title, imageUrl, description, location]
     );
 
     const eventId = eventInsertResult.insertId;
+
+    // Insert pricing for each category in SeatCategory table
+    for (const category of categories) {
+    await db.query(
+      'INSERT INTO SSD.SeatCategory (event_id, name, price) VALUES (?, ?, ?)',
+      [eventId, category.name, category.price]
+      );
+    }
 
     // Insert each date into EventDate table
     for (const { event_date, start_time, end_time } of dates) {
@@ -70,7 +80,15 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const [rows] = await db.query('SELECT * FROM SSD.Event ORDER BY created_at DESC');
+    const [rows] = await db.query(`
+      SELECT 
+        e.*, 
+        MIN(sc.price) AS lowest_price
+      FROM SSD.Event e
+      LEFT JOIN SSD.SeatCategory sc ON sc.event_id = e.event_id
+      GROUP BY e.event_id
+      ORDER BY e.created_at DESC
+      `);
     return NextResponse.json({ success: true, events: rows });
   } catch (err) {
     return NextResponse.json({ success: false, message: 'Failed to fetch events' }, { status: 500 });
