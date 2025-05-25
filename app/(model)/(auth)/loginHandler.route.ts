@@ -1,6 +1,6 @@
 import { db } from '@/lib/db'; // adjust the path as needed
 import { signJwt } from '@/lib/jwt';
-import { sessionInsert } from './sessionInsert.route';
+import { sessionInsert } from './(session)/sessionInsert.route';
 
 export async function loginHandler(email: string, password: string): Promise<{ 
   success: boolean; 
