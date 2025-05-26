@@ -19,6 +19,13 @@ export async function sendOtp(user_id: number, user_email: string): Promise<{
       // Send email using handler
       const sendEmail = await sendEmailHandler(user_email, "OTP For Concert Ticket Booking Website", `Your OTP is ${otp}. \nThis will expire in 10 minutes.`)
 
+      if (!sendEmail.success) {
+        return {
+          success: sendEmail.success,
+          message: sendEmail.message
+        }
+      }
+
       return {
         success: true,
         message: `OTP sent successfully to user ${user_id}`,
