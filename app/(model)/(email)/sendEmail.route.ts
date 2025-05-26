@@ -1,6 +1,3 @@
-import { db } from '@/lib/db'; // if you plan to use DB - currently unused
-import { signJwt } from '@/lib/jwt'; // currently unused
-
 export async function sendEmailHandler(
     sendTo: string,
     subject: string,
