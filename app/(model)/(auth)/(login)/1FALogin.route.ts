@@ -28,39 +28,39 @@ export async function FirstLoginFactor(email: string, password: string): Promise
       };
     }
 
-
-    // Insert Session ID Token into DB
-    const session_creation = await sessionInsert(users[0].user_id);
-    if (!session_creation.success) {
-      return {
-        success: session_creation.success,
-        message: session_creation.message
-      }
-    };
+    // Send OTP
     await sendOtp(users[0].user_id);
 
+    // // Insert Session ID Token into DB
+    // const session_creation = await sessionInsert(users[0].user_id);
+    // if (!session_creation.success) {
+    //   return {
+    //     success: session_creation.success,
+    //     message: session_creation.message
+    //   }
+    // };
     
-    // Issue JWT Token (With Session_ID)
-    const issue_token = await issueRefreshToken(
-      {
-      userId: users[0].user_id, 
-      user_email: users[0].email,
-      role: users[0].role,
-      session_token: session_creation.session_token!,
-      }
-    )
+    // // Issue JWT Token (With Session_ID)
+    // const issue_token = await issueRefreshToken(
+    //   {
+    //   userId: users[0].user_id, 
+    //   user_email: users[0].email,
+    //   role: users[0].role,
+    //   session_token: session_creation.session_token!,
+    //   }
+    // )
 
-    if (!issue_token.success) {
-      return {
-        success: issue_token.success,
-        message: issue_token.message
-      }
-    }
+    // if (!issue_token.success) {
+    //   return {
+    //     success: issue_token.success,
+    //     message: issue_token.message
+    //   }
+    // }
  
     return {
       success: true,
-      message: 'Login successful',
-      token: issue_token.token,
+      message: 'Login First Factor Successful',
+      // token: issue_token.token,
       userId: users[0].user_id
     };
     

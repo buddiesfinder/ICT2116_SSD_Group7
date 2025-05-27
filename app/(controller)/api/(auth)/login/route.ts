@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Call the login handler
     const result = await FirstLoginFactor(email, password);
-    console.log('LoginHandler result:', result); // just to check if the loginHandler is working
+   
 
     // return result in http response format (with status code)
     const response = NextResponse.json({
@@ -36,15 +36,15 @@ export async function POST(request: NextRequest) {
     userId: result.userId,
   }, { status: result.success ? 200 : 401 });
 
-    // Set token of log in.
-      if (result.success && result.token) {
-        response.cookies.set('refresh_token', result.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 24 * 60 * 60, // maximum time it can live on the browser in seconds (30 days)
-        path: '/',
-      });
-    }
+    // // Set token of log in.
+    //   if (result.success && result.token) {
+    //     response.cookies.set('refresh_token', result.token, {
+    //     httpOnly: true,
+    //     secure: process.env.NODE_ENV === 'production',
+    //     maxAge: 30 * 24 * 60 * 60, // maximum time it can live on the browser in seconds (30 days)
+    //     path: '/',
+    //   });
+    // }
     return response;
 
   } catch (error) {
