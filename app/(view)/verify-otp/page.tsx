@@ -19,7 +19,12 @@ export default function OTPInput({
   const [sessionUserId, setSessionUserId] = useState<string>(userId || '');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
+
   const router = useRouter();
+
+  const RESEND_INTERVAL = 100; // in seconds
+
   useEffect(() => {
     // Focus first input on mount
     if (inputRefs.current[0]) {
@@ -30,9 +35,34 @@ export default function OTPInput({
     const storedUserId = sessionStorage.getItem('otp_user_id');
     if (storedUserId) {
       setSessionUserId(storedUserId);
-      
+    }
+
+    // Resend Refresh Mitigation
+    const storedTimestamp = sessionStorage.getItem('otp_resend_timestamp');
+    if (storedTimestamp) {
+      const elapsed = Math.floor((Date.now() - Number(storedTimestamp)) / 1000);
+      if (elapsed < RESEND_INTERVAL) {
+        setResendCooldown(RESEND_INTERVAL - elapsed);
+      }
     }
   }, []);
+
+    useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const interval = setInterval(() => {
+      setResendCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000); // countdown timer
+
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
 
   const handleChange = (index: number, value: string): void => {
     // Only allow numbers
@@ -154,6 +184,7 @@ export default function OTPInput({
   };
 
   const handleResend = async (): Promise<void> => {
+    
     if (!sessionUserId) {
       setError(
           <>
@@ -169,6 +200,9 @@ export default function OTPInput({
         );
       return;
     }
+
+    const now = Date.now();
+    sessionStorage.setItem('otp_resend_timestamp', now.toString());
 
     setIsResending(true);
     setError('');
@@ -191,6 +225,9 @@ export default function OTPInput({
 
       if (!response.ok || !data.success) {
         setError(data.message || 'Failed to resend code. Please try again.');
+      }
+      else {
+        setResendCooldown(RESEND_INTERVAL);
       }
     } catch (err) {
       setError('Failed to resend code. Please check your connection and try again.');
@@ -294,10 +331,14 @@ export default function OTPInput({
                   Didn't receive the code? {' '}
                   <button
                     onClick={handleResend}
-                    disabled={isVerifying || isResending}
+                    disabled={isVerifying || isResending || resendCooldown > 0}
                     className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isResending ? 'Sending...' : 'Resend Code'}
+                    {isResending
+                    ? 'Sending...'
+                    : resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : 'Resend Code'}
                   </button>
                 </p>
               </>)
