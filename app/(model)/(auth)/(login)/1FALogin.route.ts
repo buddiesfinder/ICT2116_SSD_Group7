@@ -1,10 +1,9 @@
 import { db } from '@/lib/db'; // adjust the path as needed
-import { signJwt } from '@/lib/jwt';
-import { sessionInsert } from './(session)/sessionInsert.route';
-import { sendOtp } from './(otp)/sendOtp.route';
-import { issueRefreshToken } from './(token)/issueRefreshToken.route';
+import { sessionInsert } from '../(session)/sessionInsert.route';
+import { sendOtp } from '../(otp)/sendOtp.route';
+import { issueRefreshToken } from '../(token)/issueRefreshToken.route';
 
-export async function loginHandler(email: string, password: string): Promise<{ 
+export async function FirstLoginFactor(email: string, password: string): Promise<{ 
   success: boolean; 
   message: string;
   userId?: number; 
@@ -37,8 +36,8 @@ export async function loginHandler(email: string, password: string): Promise<{
         success: session_creation.success,
         message: session_creation.message
       }
-    }
-    await sendOtp(users[0].user_id, users[0].email)
+    };
+    await sendOtp(users[0].user_id);
 
     
     // Issue JWT Token (With Session_ID)
@@ -61,7 +60,8 @@ export async function loginHandler(email: string, password: string): Promise<{
     return {
       success: true,
       message: 'Login successful',
-      token: issue_token.token
+      token: issue_token.token,
+      userId: users[0].user_id
     };
     
   } catch (error: any) {

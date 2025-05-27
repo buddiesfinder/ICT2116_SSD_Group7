@@ -2,7 +2,7 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
-import { loginHandler } from '@/app/(model)/(auth)/loginHandler.route';
+import { FirstLoginFactor } from '@/app/(model)/(auth)/(login)/1FALogin.route';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,15 +26,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Call the login handler
-    const result = await loginHandler(email, password);
+    const result = await FirstLoginFactor(email, password);
     console.log('LoginHandler result:', result); // just to check if the loginHandler is working
 
     // return result in http response format (with status code)
-    const response = NextResponse.json( {
-      success: result.success, 
-      status: result.success ? 200 : 401,
-      message: result.message
-    });
+    const response = NextResponse.json({
+    success: result.success,
+    message: result.message,
+    userId: result.userId,
+  }, { status: result.success ? 200 : 401 });
 
     // Set token of log in.
       if (result.success && result.token) {

@@ -4,7 +4,6 @@ import { verifyOtp } from '@/app/(model)/(auth)/(otp)/verifyOtp.route';
 export async function POST(request: NextRequest) {
   try {
     const { userId, otp } = await request.json();
-    console.log("Hello: ",userId);
     if (!userId || !otp) {
       return NextResponse.json(
         { success: false, message: 'Missing userId or OTP' },

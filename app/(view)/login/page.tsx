@@ -20,7 +20,10 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (data.success) {
-      router.push('/'); // ✅ Redirect to homepage
+      
+      // Set SessionStorage for OTP (converts int to str)
+      sessionStorage.setItem('otp_user_id', data.userId);
+      router.push('/verify-otp'); 
     } else {
       alert(data.message);
     }

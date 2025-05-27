@@ -15,7 +15,7 @@ export default function OTPInput({
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
   const [isResending, setIsResending] = useState<boolean>(false);
   const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<React.ReactNode>('');
   const [sessionUserId, setSessionUserId] = useState<string>(userId || '');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -26,24 +26,13 @@ export default function OTPInput({
       inputRefs.current[0].focus();
     }
 
-    // Load userId from sessionStorage (commented out for Claude.ai compatibility)
-    // const storedUserId = sessionStorage.getItem('userId');
-    // if (storedUserId) {
-    //   setSessionUserId(storedUserId);
-    // } else if (userId) {
-    //   sessionStorage.setItem('userId', userId);
-    //   setSessionUserId(userId);
-    // }
-
-    // For demonstration in Claude.ai - simulate stored user ID
-    if (!sessionUserId && userId) {
-      setSessionUserId(userId);
-    } else if (!sessionUserId) {
-      // Simulate a user ID for demo
-      const demoUserId = 'demo-user-' + Math.random().toString(36).substr(2, 9);
-      setSessionUserId(demoUserId);
+    // Load userId from sessionStorage 
+    const storedUserId = sessionStorage.getItem('otp_user_id');
+    if (storedUserId) {
+      setSessionUserId(storedUserId);
+      
     }
-  }, [userId, sessionUserId]);
+  }, []);
 
   const handleChange = (index: number, value: string): void => {
     // Only allow numbers
@@ -112,7 +101,18 @@ export default function OTPInput({
 
   const handleVerify = async (otpValue: string): Promise<void> => {
     if (!sessionUserId) {
-      setError('User session not found. Please refresh the page.');
+      setError(
+          <>
+            User session not found.{' '} Please {' '}
+            <span
+              onClick={() => router.push('/login')}
+              className="text-blue-400 hover:underline cursor-pointer"
+            >
+              Re-login
+            </span>
+            .
+          </>
+        );
       return;
     }
 
@@ -127,7 +127,7 @@ export default function OTPInput({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: "1", // hardcode user 1 --> bull.daniel.3@gmail.com
+          userId: sessionUserId, // hardcode user 1 --> bull.daniel.3@gmail.com
           otp: otpValue,
         }),
       });
@@ -155,7 +155,18 @@ export default function OTPInput({
 
   const handleResend = async (): Promise<void> => {
     if (!sessionUserId) {
-      setError('User session not found. Please refresh the page.');
+      setError(
+          <>
+            User session not found.{' '} Please {' '}
+            <span
+              onClick={() => router.push('/login')}
+              className="text-blue-400 hover:underline cursor-pointer"
+            >
+              Re-login
+            </span>
+            .
+          </>
+        );
       return;
     }
 
@@ -166,7 +177,7 @@ export default function OTPInput({
     
     try {
       // Make POST request to Next.js API route
-      const response = await fetch('/api/sendotp', {
+      const response = await fetch('/api/resendotp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -226,7 +237,7 @@ export default function OTPInput({
               </svg>
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Enter Verification Code</h1>
-            <p className="text-gray-300">We've sent a 6-digit code to your phone</p>
+            <p className="text-gray-300">We've sent a 6-digit code to your email</p>
             {sessionUserId && (
               <p className="text-gray-500 text-xs mt-2">Session: {sessionUserId}</p>
             )}
@@ -278,16 +289,35 @@ export default function OTPInput({
             )}
 
             <div className="text-center">
-              <p className="text-gray-400 text-sm">
-                Didn't receive the code?{' '}
+              {sessionUserId ? (<>
+                <p className="text-gray-400 text-sm">
+                  Didn't receive the code? {' '}
+                  <button
+                    onClick={handleResend}
+                    disabled={isVerifying || isResending}
+                    className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isResending ? 'Sending...' : 'Resend Code'}
+                  </button>
+                </p>
+              </>)
+            :
+            (
+            <>
+            <p className="text-gray-400 text-sm">
+                User not detected. Please {' '}
                 <button
-                  onClick={handleResend}
+                  onClick={() => {router.push('/login')}}
                   disabled={isVerifying || isResending}
                   className="text-blue-400 hover:text-blue-300 font-semibold hover:underline transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isResending ? 'Sending...' : 'Resend Code'}
+                  Re-Login
                 </button>
               </p>
+            </>  
+            ) 
+              }
+              
             </div>
           </div>
 
