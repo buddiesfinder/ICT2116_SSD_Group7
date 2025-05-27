@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
     const categoriesRaw = formData.get('categories') as string;
     const categories = JSON.parse(categoriesRaw); // [{ category_id: 1, name: 'Premium', price: '300' }, ...]
 
+    const seatLimitMap: Record<string, number> = {Premium: 50, Standard: 100, Economy: 150};
+
     if (!file || typeof file === 'string') {
       return NextResponse.json({ success: false, message: 'Invalid image' });
     }
@@ -57,11 +59,12 @@ export async function POST(req: NextRequest) {
 
     // Insert pricing for each category in SeatCategory table
     for (const category of categories) {
-    await db.query(
-      'INSERT INTO SSD.SeatCategory (event_id, name, price) VALUES (?, ?, ?)',
-      [eventId, category.name, category.price]
+      const seatLimit = seatLimitMap[category.name] || 0; // fallback to 0 if unknown
+      await db.query(
+        'INSERT INTO SSD.SeatCategory (event_id, name, price, seat_limit) VALUES (?, ?, ?, ?)',
+        [eventId, category.name, category.price, seatLimit]
       );
-    }
+    }      
 
     // Insert each date into EventDate table
     for (const { event_date, start_time, end_time } of dates) {
@@ -69,6 +72,23 @@ export async function POST(req: NextRequest) {
         'INSERT INTO SSD.EventDate (event_id, event_date, start_time, end_time) VALUES (?, ?, ?, ?)',
         [eventId, event_date, start_time, end_time]
       );
+    }
+
+    // Insert the available seats 
+    const [seatCategories] = await db.query(
+      'SELECT seat_category_id, seat_limit FROM SSD.SeatCategory WHERE event_id = ?', [eventId]
+    ) as [Array<{ seat_category_id: number; seat_limit: number }>, any];
+    const [eventDates] = await db.query(
+      'SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?', [eventId]
+    )as [Array<{ event_date_id: number }>, any];
+
+    for (const category of seatCategories) {
+      for (const date of eventDates) {
+        await db.query(
+          'INSERT INTO SSD.AvailableSeats (seat_category_id, event_date_id, available_seats) VALUES (?, ?, ?)',
+          [category.seat_category_id, date.event_date_id, category.seat_limit]
+        );
+      }
     }
 
     return NextResponse.json({ success: true });

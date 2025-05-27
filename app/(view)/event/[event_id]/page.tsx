@@ -16,19 +16,33 @@ interface Event {
 }
 
 interface EventDate {
+  event_date_id: number;
   event_date: string;
   start_time: string;
   end_time: string;
 }
 
+interface SeatCategory {
+  seat_category_id: number;
+  name: string;
+  price: number;
+}
+
+interface AvailableSeat {
+  seat_category_id: number;
+  event_date_id: number;
+  available_seats: number;
+}
+
 export default function EventDetailPage() {
   const { event_id } = useParams();
   const [event, setEvent] = useState<Event | null>(null);
-  const [seatCategories, setSeatCategories] = useState<{ name: string; price: number }[]>([]);
+  const [seatCategories, setSeatCategories] = useState<SeatCategory[]>([]);
+  const [availableSeats, setAvailableSeats] = useState<AvailableSeat[]>([]);
   const [dates, setDates] = useState<EventDate[]>([]);
   const [loading, setLoading] = useState(true);
   const [ticketSelections, setTicketSelections] = useState<Record<string, number>>({});
-
+  const [selectedDate, setSelectedDate] = useState<EventDate | null>(null);
 
   const seatConfig = {
   Premium: { rows: 2, cols: 25 },
@@ -48,6 +62,7 @@ export default function EventDetailPage() {
           setEvent(data.event);
           setDates(data.dates);
           setSeatCategories(data.seatCategories || []);
+          setAvailableSeats(data.availableSeats || []);
         }
       } catch (error) {
         console.error('Failed to fetch event details', error);
@@ -92,8 +107,52 @@ export default function EventDetailPage() {
     );
   }
 
-  return seats;
-};
+    return seats;
+  };
+
+      const handleCheckout = async () => {
+      if (!selectedDate) {
+        alert("Please select an event date.");
+        return;
+      }
+
+      const selectedTickets = Object.entries(ticketSelections)
+        .filter(([_, quantity]) => quantity > 0)
+        .map(([category_name, quantity]) => {
+          const matched = seatCategories.find(c => c.name === category_name);
+          return {
+            seat_category_id: matched?.seat_category_id, 
+            category_name,
+            quantity,
+            price: matched?.price ?? 0
+          };
+        });
+
+      if (selectedTickets.length === 0) {
+        alert("Please select at least one ticket.");
+        return;
+      }
+
+      const payload = {
+        event_date_id: (selectedDate as any).event_date_id,
+        tickets: selectedTickets
+      };
+
+
+      const res = await fetch("/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        window.location.href = "/success"; // Or Stripe checkout URL 
+      } else {
+        alert("Booking failed: " + result.message);
+      }
+    };
+
 
   return (
     <div className="p-6 text-white">
@@ -127,14 +186,27 @@ export default function EventDetailPage() {
           {dates.map((d, i) => (
             <li
               key={i}
-              className="bg-zinc-800 p-3 rounded border border-zinc-600"
+              className={`bg-zinc-800 p-3 rounded border ${
+                selectedDate?.event_date === d.event_date ? "border-blue-500" : "border-zinc-600"
+              }`}
             >
-              <span className="font-semibold">{d.event_date.split('T')[0]}</span> |{' '}
-              {d.start_time.slice(0, 5)} - {d.end_time.slice(0, 5)}
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="event_date"
+                  value={i}
+                  checked={selectedDate?.event_date === d.event_date}
+                  onChange={() => setSelectedDate(d)}
+                />
+                <span>
+                  <strong>{d.event_date.split("T")[0]}</strong> | {d.start_time.slice(0, 5)} - {d.end_time.slice(0, 5)}
+                </span>
+              </label>
             </li>
           ))}
         </ul>
       )}
+
 
       <h2 className="text-xl font-bold mt-6">Seat Selection</h2>
       <div className="mt-4 flex flex-col lg:flex-row gap-6">
@@ -220,14 +292,17 @@ export default function EventDetailPage() {
         })}
 
         <div className="text-sm text-gray-600 mb-3">
-          {seatCategories.map((cat, i) => {
-            const count = getSeatCount(cat.name as keyof typeof seatConfig);
-            return (
-              <div key={i}>
-                {cat.name}: {count} available
-              </div>
-            );
-          })}
+          {selectedDate &&
+            availableSeats
+              .filter(seat => seat.event_date_id === selectedDate.event_date_id)
+              .map(seat => {
+                const category = seatCategories.find(cat => cat.seat_category_id === seat.seat_category_id);
+                return (
+                  <div key={seat.seat_category_id}>
+                    {category?.name}: {seat.available_seats} available
+                  </div>
+                );
+              })}
         </div>
 
         <div className="text-sm mb-2">
@@ -238,15 +313,18 @@ export default function EventDetailPage() {
         </div>
 
         <button
-          disabled={Object.values(ticketSelections).reduce((sum, val) => sum + val, 0) === 0}
-          className={`w-full py-2 rounded ${
-            Object.values(ticketSelections).reduce((sum, val) => sum + val, 0) === 0
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
-        >
-          Continue to Checkout
-        </button>
+        onClick={handleCheckout}
+        disabled={
+          Object.values(ticketSelections).reduce((sum, val) => sum + val, 0) === 0 || !selectedDate
+        }
+        className={`w-full py-2 rounded ${
+          Object.values(ticketSelections).reduce((sum, val) => sum + val, 0) === 0 || !selectedDate
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700 text-white"
+        }`}
+      >
+        Continue to Checkout
+      </button>
 
       </div>
     </div>

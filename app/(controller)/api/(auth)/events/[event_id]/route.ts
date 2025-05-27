@@ -12,13 +12,22 @@ export async function GET(_: NextRequest, { params }: { params: { event_id: stri
   try {
     const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [eventId]);
     const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
-    const [datesResult]: any = await db.query('SELECT event_date, start_time, end_time FROM SSD.EventDate WHERE event_id = ?', [eventId]);
+    const [datesResult]: any = await db.query('SELECT event_date_id, event_date, start_time, end_time FROM SSD.EventDate WHERE event_id = ?', [eventId]);
+
+    const [availableSeats]: any = await db.query(
+      `SELECT seat_category_id, event_date_id, available_seats
+      FROM SSD.AvailableSeats
+      WHERE event_date_id IN (
+        SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?
+      )`,
+      [eventId]
+    );
 
     const event = eventResult[0];
     if (!event) {
       return NextResponse.json({ success: false, message: 'Event not found' }, { status: 404 });
     }
-    return NextResponse.json({ success: true, event, seatCategories: seatCategoryResult, dates: datesResult });
+    return NextResponse.json({ success: true, event, seatCategories: seatCategoryResult, dates: datesResult, availableSeats });
   } catch (err) {
     console.error('Error fetching event detail:', err);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
@@ -82,7 +91,6 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
         [eventId, event_date, start_time, end_time]
       );
     }
-
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error updating event:', err);
