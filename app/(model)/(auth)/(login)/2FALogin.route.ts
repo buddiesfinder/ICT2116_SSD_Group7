@@ -1,21 +1,21 @@
 import { db } from '@/lib/db'; // adjust the path as needed
-import { signJwt } from '@/lib/jwt';
-import { sessionInsert } from './(session)/sessionInsert.route';
-import { sendOtp } from './(otp)/sendOtp.route';
-import { issueRefreshToken } from './(token)/issueRefreshToken.route';
+import { sessionInsert } from '../(session)/sessionInsert.route';
+import { verifyOtp } from '../(otp)/verifyOtp.route';
+import { issueRefreshToken } from '../(token)/issueRefreshToken.route';
 
-export async function loginHandler(email: string, password: string): Promise<{ 
+export async function SecondLoginFactor(userId: number, otp: string): Promise<{ 
   success: boolean; 
   message: string;
   userId?: number; 
   token?: string;
 }> {
   
-  try {
+  try {    
+
     // Query the database for a user with matching email and password
     const [rows] = await db.query(
-      'SELECT user_id, email, role FROM SSD.User WHERE email = ? AND password = ?',
-      [email, password]
+      'SELECT user_id, email, role FROM SSD.User WHERE user_id = ?',
+      [userId]
     );
     
     // Check if we found a matching user
@@ -25,10 +25,18 @@ export async function loginHandler(email: string, password: string): Promise<{
       console.log('No matching user found');
       return {
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid user Id'
       };
     }
 
+    const verify = await verifyOtp(userId, otp);
+
+    if (!verify.success) {
+          return {
+            success: verify.success,
+            message: verify.message
+        }
+    }
 
     // Insert Session ID Token into DB
     const session_creation = await sessionInsert(users[0].user_id);
@@ -37,9 +45,7 @@ export async function loginHandler(email: string, password: string): Promise<{
         success: session_creation.success,
         message: session_creation.message
       }
-    }
-    await sendOtp(users[0].user_id, users[0].email)
-
+    };
     
     // Issue JWT Token (With Session_ID)
     const issue_token = await issueRefreshToken(
@@ -60,8 +66,9 @@ export async function loginHandler(email: string, password: string): Promise<{
  
     return {
       success: true,
-      message: 'Login successful',
-      token: issue_token.token
+      message: 'Login Second Factor Successful',
+      token: issue_token.token,
+      userId: users[0].user_id
     };
     
   } catch (error: any) {

@@ -1,7 +1,8 @@
 import { redisSet } from '../../(gateway)/(redis)/redisSet.route';
 import { sendEmailHandler } from '../../(email)/sendEmail.route';
+import { db } from '@/lib/db';
 
-export async function sendOtp(user_id: number, user_email: string): Promise<{
+export async function sendOtp(user_id: number): Promise<{
   success: boolean;
   message: string;
 }> {
@@ -9,6 +10,23 @@ export async function sendOtp(user_id: number, user_email: string): Promise<{
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
+
+      const [rows] = await db.query(
+            'SELECT email FROM SSD.User WHERE user_id = ?',
+            [user_id]
+          );
+          
+          // Check if we found a matching user
+          const users = rows as any[];
+          
+          if (users.length === 0) {
+            return {
+              success: false,
+              message: 'Invalid user id'
+            };
+          }
+          
+      const user_email = users[0].email;
       const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
       
       // Set user_id to Redis
