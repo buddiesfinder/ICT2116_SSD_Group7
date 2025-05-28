@@ -111,47 +111,47 @@ export default function EventDetailPage() {
   };
 
       const handleCheckout = async () => {
-      if (!selectedDate) {
-        alert("Please select an event date.");
-        return;
-      }
+        if (!selectedDate) {
+          alert("Please select an event date.");
+          return;
+        }
 
-      const selectedTickets = Object.entries(ticketSelections)
-        .filter(([_, quantity]) => quantity > 0)
-        .map(([category_name, quantity]) => {
-          const matched = seatCategories.find(c => c.name === category_name);
-          return {
-            seat_category_id: matched?.seat_category_id, 
-            category_name,
-            quantity,
-            price: matched?.price ?? 0
-          };
+        const selectedTickets = Object.entries(ticketSelections)
+          .filter(([_, quantity]) => quantity > 0)
+          .map(([category_name, quantity]) => {
+            const matched = seatCategories.find(c => c.name === category_name);
+            return {
+              seat_category_id: matched?.seat_category_id,
+              category_name,
+              quantity,
+              price: matched?.price ?? 0,
+            };
+          });
+
+        if (selectedTickets.length === 0) {
+          alert("Please select at least one ticket.");
+          return;
+        }
+
+        const payload = {
+          event_date_id: selectedDate.event_date_id,
+          tickets: selectedTickets,
+        };
+
+        const res = await fetch("/api/payment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
 
-      if (selectedTickets.length === 0) {
-        alert("Please select at least one ticket.");
-        return;
-      }
-
-      const payload = {
-        event_date_id: (selectedDate as any).event_date_id,
-        tickets: selectedTickets
+        const result = await res.json();
+        if (result.url) {
+          window.location.href = result.url; // Redirect to Stripe Checkout
+        } else {
+          alert("Checkout failed: " + result.error);
+        }
       };
 
-
-      const res = await fetch("/api/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await res.json();
-      if (result.success) {
-        window.location.href = "/success"; // Or Stripe checkout URL 
-      } else {
-        alert("Booking failed: " + result.message);
-      }
-    };
 
 
   return (
