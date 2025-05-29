@@ -9,26 +9,29 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-      headers: { 'Content-Type': 'application/json' },
-    });
+  const res = await fetch('/api/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+    headers: { 'Content-Type': 'application/json' },
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if (data.success) {
-      
-      // Set SessionStorage for OTP (converts int to str)
-      sessionStorage.setItem('otp_user_id', data.userId);
-      router.push('/verify-otp'); 
-    } else {
-      alert(data.message);
-    }
-  };
+  if (data.success) {
+    // Store OTP user id for verification step
+    sessionStorage.setItem('otp_user_id', data.userId);
 
+    // Navigate to verify OTP page
+    router.push('/verify-otp');
+
+    // Refresh server components to update Navbar etc.
+    router.refresh();
+  } else {
+    alert(data.message);
+  }
+};
   return (
     <div className="flex items-center justify-center min-h-screen bg-black text-white">
       <div className="bg-zinc-900 p-8 rounded-lg shadow-lg w-full max-w-md">

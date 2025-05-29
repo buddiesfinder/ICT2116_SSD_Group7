@@ -1,4 +1,3 @@
-// app/layout.tsx (Server Component)
 import './globals.css';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -11,14 +10,14 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies(); 
   const token = cookieStore.get('refresh_token')?.value;
 
   let email: string | null = null;
   if (token) {
     try {
       const { payload } = decodeJwt(token);
-      email = payload.user_email;
+      email = payload.user_email ?? null;
     } catch (e) {
       console.error('Invalid token', e);
     }
@@ -27,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        <Navbar email={email} /> {/* ✅ Server-only value passed to Navbar */}
+        <Navbar email={email} />
         <main className="p-6">{children}</main>
       </body>
     </html>

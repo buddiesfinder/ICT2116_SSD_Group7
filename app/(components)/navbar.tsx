@@ -1,8 +1,4 @@
-'use client';
-
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import React from 'react';
 
 const links = [
   { href: '/', label: 'Home' },
@@ -14,7 +10,7 @@ const links = [
 ];
 
 export default function Navbar({ email }: { email: string | null }) {
-  const pathname = usePathname();
+
 
   return (
     <nav className="bg-zinc-900 text-white px-6 py-4 border-b border-zinc-700 flex justify-between items-center">
@@ -23,9 +19,7 @@ export default function Navbar({ email }: { email: string | null }) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className={`hover:underline ${
-                pathname === link.href ? 'underline font-bold' : ''
-              }`}
+              className={`hover:underline`}
             >
               {link.label}
             </Link>

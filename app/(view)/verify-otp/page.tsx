@@ -166,6 +166,7 @@ export default function OTPInput({
 
       if (response.ok && data.success) {
         setIsVerified(true);
+        router.refresh();
         // Update session storage with verification status (commented for Claude.ai)
         // sessionStorage.setItem('otpVerified', 'true');
       } else {

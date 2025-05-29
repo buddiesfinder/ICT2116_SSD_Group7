@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { passwordStrengthCheckerAsync } from '@/utils/passwordStrengthChecker';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +25,7 @@ export default function RegisterPage() {
 
     if (data.success) {
       alert('Registration successful! Redirecting to login...');
-      router.push('/login'); // ✅ Redirect
+      router.push('/login');
     } else {
       alert(data.message);
     }
@@ -67,11 +69,23 @@ export default function RegisterPage() {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={async (e) => {
+                const value = e.target.value;
+                setPassword(value);
+                const { message } = await passwordStrengthCheckerAsync(value);
+                setPasswordStrength(message);
+              }}
               placeholder="••••••••"
               className="w-full px-4 py-2 bg-zinc-800 text-white border border-zinc-700 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
+            <p className={`mt-1 text-sm ${
+              passwordStrength.toLowerCase().includes('strong') ? 'text-green-500' :
+              passwordStrength.toLowerCase().includes('medium') ? 'text-yellow-500' :
+              'text-red-500'
+            }`}>
+              {passwordStrength || 'Enter a password'}
+            </p>
           </div>
 
           <button
