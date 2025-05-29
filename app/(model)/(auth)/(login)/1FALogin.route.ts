@@ -3,18 +3,19 @@ import { sessionInsert } from '../(session)/sessionInsert.route';
 import { sendOtp } from '../(otp)/sendOtp.route';
 import { issueRefreshToken } from '../(token)/issueRefreshToken.route';
 
-export async function FirstLoginFactor(email: string, password: string): Promise<{ 
+export async function FirstLoginFactor(email: string, password: string, recaptchaToken?: string): Promise<{ 
   success: boolean; 
   message: string;
   userId?: number; 
   token?: string;
+  requireRecaptcha?: boolean;
 }> {
   
   try {
     // Query the database for a user with matching email and password
     const [rows] = await db.query(
-      'SELECT user_id, email, role FROM SSD.User WHERE email = ? AND password = ?',
-      [email, password]
+      'SELECT * FROM SSD.User WHERE email = ?',
+      [email]
     );
     
     // Check if we found a matching user
@@ -24,43 +25,88 @@ export async function FirstLoginFactor(email: string, password: string): Promise
       console.log('No matching user found');
       return {
         success: false,
-        message: 'Invalid email or password'
+        message: 'Invalid email'
       };
     }
 
+    // Check if suspended
+    if (users[0].suspended) {
+      return {
+        success: false,
+        message: "User is Suspended"
+      }
+    }
+
+    // Prompt Reset Password after 7 attempts (does not even try to verify password)
+    if (users[0].login_attempts >= 7) {
+      return {
+        success: false,
+        message: "Exceeded password reset attempts. Please Reset password."
+      }
+    }
+
+    const requiresCaptcha = users[0].login_attempts > 0 && users[0].login_attempts % 3 === 0;
+
+    // check past login_attempts to prompt recaptcha
+    if (requiresCaptcha) {
+
+      // require recaptcha token
+      // Recaptcha token not parsed from frontend
+      if (!recaptchaToken) {
+        return {
+          success: false,
+          message: 'Recaptcha required',
+          requireRecaptcha: true
+        };
+      }
+      
+      // verify recaptcha
+      const recaptchaResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/verify-recaptcha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: recaptchaToken })
+      });
+
+      const recaptchaResult = await recaptchaResponse.json();
+
+      if (!recaptchaResult.success) {
+        return {
+          success: false,
+          message: recaptchaResult.message || 'Recaptcha verification failed',
+        };
+      }
+
+    }
+
+    // Check if password matches
+    if (password != users[0].password) {
+      console.log("Password incorrect");
+
+      // Increase login_attempts by 1
+      const newAttempts = users[0].login_attempts + 1;
+      await db.query(
+        'UPDATE SSD.User SET login_attempts = ? WHERE user_id = ?',
+        [newAttempts, users[0].user_id]
+      );
+
+      return {
+        success: false,
+        message: 'Invalid Password',
+      }
+    }
+
+    // Password is correct — reset login attempts to 0
+    await db.query(
+      'UPDATE SSD.User SET login_attempts = 0 WHERE user_id = ?',
+      [users[0].user_id]
+    );
+    
     // Send OTP
     await sendOtp(users[0].user_id);
 
-    // // Insert Session ID Token into DB
-    // const session_creation = await sessionInsert(users[0].user_id);
-    // if (!session_creation.success) {
-    //   return {
-    //     success: session_creation.success,
-    //     message: session_creation.message
-    //   }
-    // };
-    
-    // // Issue JWT Token (With Session_ID)
-    // const issue_token = await issueRefreshToken(
-    //   {
-    //   userId: users[0].user_id, 
-    //   user_email: users[0].email,
-    //   role: users[0].role,
-    //   session_token: session_creation.session_token!,
-    //   }
-    // )
-
-    // if (!issue_token.success) {
-    //   return {
-    //     success: issue_token.success,
-    //     message: issue_token.message
-    //   }
-    // }
- 
     return {
       success: true,
       message: 'Login First Factor Successful',
-      // token: issue_token.token,
       userId: users[0].user_id
     };
     
@@ -69,7 +115,7 @@ export async function FirstLoginFactor(email: string, password: string): Promise
     
     return {
       success: false,
-      message: 'Failed to authenticate user'
+      message: error.message
     };
   }
 }
