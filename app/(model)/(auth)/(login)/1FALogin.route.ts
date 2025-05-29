@@ -3,7 +3,7 @@ import { sessionInsert } from '../(session)/sessionInsert.route';
 import { sendOtp } from '../(otp)/sendOtp.route';
 import { issueRefreshToken } from '../(token)/issueRefreshToken.route';
 
-export async function FirstLoginFactor(email: string, password: string): Promise<{ 
+export async function FirstLoginFactor(email: string, password: string, recaptchaToken?: string): Promise<{ 
   success: boolean; 
   message: string;
   userId?: number; 
@@ -27,6 +27,55 @@ export async function FirstLoginFactor(email: string, password: string): Promise
         success: false,
         message: 'Invalid email'
       };
+    }
+
+    // Check if suspended
+    if (users[0].suspended) {
+      return {
+        success: false,
+        message: "User is Suspended"
+      }
+    }
+
+    // Prompt Reset Password after 7 attempts (does not even try to verify password)
+    if (users[0].login_attempts >= 7) {
+      return {
+        success: false,
+        message: "Exceeded password reset attempts. Please Reset password."
+      }
+    }
+
+    const requiresCaptcha = users[0].login_attempts > 0 && users[0].login_attempts % 3 === 0;
+
+    // check past login_attempts to prompt recaptcha
+    if (requiresCaptcha) {
+
+      // require recaptcha token
+      // Recaptcha token not parsed from frontend
+      if (!recaptchaToken) {
+        return {
+          success: false,
+          message: 'Recaptcha required',
+          requireRecaptcha: true
+        };
+      }
+      
+      // verify recaptcha
+      const recaptchaResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/verify-recaptcha`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: recaptchaToken })
+      });
+
+      const recaptchaResult = await recaptchaResponse.json();
+
+      if (!recaptchaResult.success) {
+        return {
+          success: false,
+          message: recaptchaResult.message || 'Recaptcha verification failed',
+        };
+      }
+
     }
 
     // Check if password matches
@@ -58,7 +107,6 @@ export async function FirstLoginFactor(email: string, password: string): Promise
     return {
       success: true,
       message: 'Login First Factor Successful',
-      // token: issue_token.token,
       userId: users[0].user_id
     };
     
@@ -67,7 +115,7 @@ export async function FirstLoginFactor(email: string, password: string): Promise
     
     return {
       success: false,
-      message: 'Failed to authenticate user'
+      message: error.message
     };
   }
 }

@@ -6,7 +6,9 @@ import { FirstLoginFactor } from '@/app/(model)/(auth)/(login)/1FALogin.route';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    
+    const body = await request.json();
+    const { email, password, recaptchaToken } = body;
 
     // Basic validation
     if (!email || !password) {
@@ -26,14 +28,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Call the login handler
-    const result = await FirstLoginFactor(email, password);
-   
+    const result = await FirstLoginFactor(email, password, recaptchaToken);
 
     // return result in http response format (with status code)
     const response = NextResponse.json({
     success: result.success,
     message: result.message,
     userId: result.userId,
+    requireRecaptcha: result.requireRecaptcha ?? false,
   }, { status: result.success ? 200 : 401 });
 
 
