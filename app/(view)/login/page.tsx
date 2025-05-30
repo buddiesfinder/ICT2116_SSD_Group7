@@ -85,6 +85,17 @@ export default function LoginPage() {
               required
             />
           </div>
+          <div className='text-center'>
+            <button 
+            onClick={() => {router.push("/forgot_issue_otp")}}
+            className="text-center">
+              <span
+                className="text-blue-400 hover:text-blue-300 text-sm"
+              >
+                Forgot Password?
+              </span>
+            </button>
+          </div>
 
           {showRecaptcha &&
           (
