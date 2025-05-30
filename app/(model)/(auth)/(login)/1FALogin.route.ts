@@ -1,7 +1,5 @@
 import { db } from '@/lib/db'; // adjust the path as needed
-import { sessionInsert } from '../(session)/sessionInsert.route';
 import { sendOtp } from '../(otp)/sendOtp.route';
-import { issueRefreshToken } from '../(token)/issueRefreshToken.route';
 
 export async function FirstLoginFactor(email: string, password: string, recaptchaToken?: string): Promise<{ 
   success: boolean; 

@@ -51,9 +51,6 @@ export default function LoginPage() {
       setError ("Network Error. Try again.")
     } finally {
       setIsLoading(false);
-        // Navigate to verify OTP page
-      router.push('/verify-otp');
-      
     }
   };
 
@@ -99,7 +96,7 @@ export default function LoginPage() {
 
             {error && (
             <div className="text-red-400 text-sm text-center bg-red-900/20 border border-red-800 rounded p-2">
-              {error}
+              Error: {error}
             </div>
           )}
 
