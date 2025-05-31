@@ -82,7 +82,7 @@ export default function EventDetailPage() {
   cols: number,
   section: string,
   color: string
-) => {
+  ) => {
   const seats = [];
 
   for (let r = 0; r < rows; r++) {
@@ -125,6 +125,7 @@ export default function EventDetailPage() {
               category_name,
               quantity,
               price: matched?.price ?? 0,
+              event_id: event?.event_id
             };
           });
 
@@ -151,8 +152,6 @@ export default function EventDetailPage() {
           alert("Checkout failed: " + result.error);
         }
       };
-
-
 
   return (
     <div className="p-6 text-white">
