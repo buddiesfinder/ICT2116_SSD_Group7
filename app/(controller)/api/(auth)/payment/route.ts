@@ -17,7 +17,20 @@ export async function POST(request: NextRequest) {
         }
 
         // Temporary fixed user ID (replace later when you implement auth)
-        const user_id = 1;
+        const refreshToken = request.cookies.get('refresh_token')?.value;
+        if (!refreshToken) {
+        return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
+        }
+
+        const user = verifyJwt(refreshToken, process.env.REFRESH_JWT!);
+        if (!user) {
+        return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
+        }
+
+        const user_id = user.userId;
+        if (!user_id) {
+        return NextResponse.json({ success: false, message: 'Missing user_id in token' }, { status: 400 });
+        }
 
         //Calculate total transaction amount
         const totalAmount = tickets.reduce((sum, ticket) => {

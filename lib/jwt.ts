@@ -116,6 +116,5 @@ export function verifyJwt(token: string, secret: string): Record<string, any> {
   if (payload.exp && now > payload.exp) {
     throw new Error('Token expired');
   }
-
   return payload;
 }
