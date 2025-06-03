@@ -16,7 +16,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, message: 'No tickets selected' }, { status: 400 });
         }
 
-        // Temporary fixed user ID (replace later when you implement auth)
         const refreshToken = request.cookies.get('refresh_token')?.value;
         if (!refreshToken) {
         return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
@@ -71,7 +70,7 @@ export async function POST(request: NextRequest) {
             const [bookingResult]: any = await db.query(
                 `INSERT INTO Booking 
                 (transaction_id, user_id, event_id, quantity, status, amount_payable, booked_at, redeemed, seat_category_id, event_date_id)
-                VALUES (?, ?, ?, ?, 'confirmed', ?, NOW(), 'no', ?, ?)`,
+                VALUES (?, ?, ?, ?, 'reserved', ?, NOW(), 'no', ?, ?)`,
                 [
                 transaction_id,
                 user_id,
@@ -112,7 +111,8 @@ export async function POST(request: NextRequest) {
         line_items,
         mode: 'payment',
         success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success_payment`,
-        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel?transaction_id=${transaction_id}`,
+        expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
         metadata: {
             booking_ids: bookingIds.join(','),
             transaction_id: transaction_id.toString(),
