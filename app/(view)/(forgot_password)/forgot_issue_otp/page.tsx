@@ -82,7 +82,7 @@ export default function ForgotPasswordPage() {
     setOtpError('');
     console.log("otpcode", otpCode);
     try {
-      const res = await fetch('/api/forget-otp', {
+      const res = await fetch('/api/forgot-otp', {
         method: 'POST',
         body: JSON.stringify({ email, otp: otpCode }),
         headers: { 'Content-Type': 'application/json' },
@@ -92,11 +92,8 @@ export default function ForgotPasswordPage() {
 
       if (data.success) {
         // Redirect to reset password page or handle success
-        router.push(`/reset-password?token=${data.token}`);
+        router.push(`/forgot_reset_password`);
       } 
-      else if (!data.success && !data.showError) {
-        router.push(`/reset-password?token=${data.token}`);
-      }
       else {
         setOtpError(data.message || 'Invalid OTP. Please try again.');
         setOtp(['', '', '', '', '', '']); // Clear OTP fields

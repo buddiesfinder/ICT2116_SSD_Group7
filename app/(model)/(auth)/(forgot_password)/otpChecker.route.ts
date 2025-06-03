@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'; // adjust the path as needed
+import { verifyOtp } from '../(otp)/verifyOtp.route';
 
-export async function emailChecker(
+export async function otpChecker(
     email: string,
     otp: string
 ): Promise<{
@@ -25,19 +26,19 @@ export async function emailChecker(
             message: 'Email Not Found'
           };
         }
-    
-        
 
-    return {
-        success: true,
-        message: "Reset password otp verification email sent.",
-        userId: users[0].user_id
-    }
+        const isVerified = await verifyOtp(users[0].user_id, otp);
+        
+        return {
+          success: isVerified.success,
+          message: isVerified.message,
+          userId: users[0].user_id
+        }
 
   } catch (error: any) {
     return {
       success: false,
-      message: `Email Checker Failed: ${error}`,
+      message: `OTP Checker Failed: ${error}`,
     };
   }
 }
