@@ -34,10 +34,15 @@ export default function ForgotPasswordPage() {
       const data = await res.json();
 
       if (data.success) {
-        setMessage('Password reset link has been sent to your email address.');
+        setMessage('If email is valid, OTP has been sent to your email address.');
         setIsSubmitted(true);
-      } else {
-        setError(data.message || 'Failed to send reset email. Please try again.');
+      } else if (!data.success && !data.showError) {
+        setMessage('If email is valid, OTP has been sent to your email address.');
+        setIsSubmitted(true);
+      }
+      
+      else {
+        setError(data.message);
       }
     } catch (err) {
       setError('Network Error. Please try again.');
@@ -88,7 +93,11 @@ export default function ForgotPasswordPage() {
       if (data.success) {
         // Redirect to reset password page or handle success
         router.push(`/reset-password?token=${data.token}`);
-      } else {
+      } 
+      else if (!data.success && !data.showError) {
+        router.push(`/reset-password?token=${data.token}`);
+      }
+      else {
         setOtpError(data.message || 'Invalid OTP. Please try again.');
         setOtp(['', '', '', '', '', '']); // Clear OTP fields
         otpRefs.current[0]?.focus(); // Focus first input

@@ -7,6 +7,7 @@ export async function emailChecker(
   success: boolean;
   message: string;
   userId?: number; 
+  showError?: boolean; 
 }> {
   try {
 
@@ -22,7 +23,8 @@ export async function emailChecker(
         if (users.length === 0) {
           return {
             success: false,
-            message: 'Email Not Found'
+            message: 'Email Not Found',
+            showError: false,
           };
         }
     

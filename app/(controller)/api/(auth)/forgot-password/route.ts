@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
     success: result.success,
     message: result.message,
-    userId: result.userId
+    userId: result.userId,
+    showError: result.showError ?? true,
     });
 
     return response;

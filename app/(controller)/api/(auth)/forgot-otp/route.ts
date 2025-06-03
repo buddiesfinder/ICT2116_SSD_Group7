@@ -7,8 +7,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, otp } = body;
 
-
-
+    console.log("email: ", email);
+    console.log("otp: ", otp);
     
 
   } catch (error) {
