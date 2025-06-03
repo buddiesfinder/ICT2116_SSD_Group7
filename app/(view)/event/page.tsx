@@ -141,9 +141,9 @@ export default function EventPage() {
       }
 
     // Set seat category prices
-    if (Array.isArray(data.price)) {
+    if (Array.isArray(data.seatCategories)) {
       const updatedCategories = defaultCategories.map((cat) => {
-        const match = data.price.find((item: any) => item.name === cat.name);
+        const match = data.seatCategories.find((item: any) => item.name === cat.name);
         return {
           ...cat,
           price: match ? match.price.toString() : '',
@@ -152,7 +152,6 @@ export default function EventPage() {
       setCategories(updatedCategories);
     }
   }
-
     setIsEditing(true);
   };
 
@@ -186,7 +185,7 @@ export default function EventPage() {
                 placeholder="Price"
                 value={cat.price}
                 onChange={(e) => handleCategoryChange(index, e.target.value)}
-                required
+                required={!isEditing || !cat.price}
                 className="p-2 bg-zinc-800 border border-zinc-600 rounded w-32"
               />
             </div>

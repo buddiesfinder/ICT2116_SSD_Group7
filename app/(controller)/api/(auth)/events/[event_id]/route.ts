@@ -1,5 +1,3 @@
-// backend to handle specific event details 
-
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
@@ -83,7 +81,7 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
       );
     }
 
-    // Replace existing event dates with new ones
+    // Update event dates
     await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [eventId]);
     for (const { event_date, start_time, end_time } of dates) {
       await db.query(
@@ -91,6 +89,38 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
         [eventId, event_date, start_time, end_time]
       );
     }
+
+    // Re-insert AvailableSeats for updated seat categories and dates
+    const seatLimitMap: Record<string, number> = {
+      Premium: 50,
+      Standard: 100,
+      Economy: 150
+    };
+
+    const [updatedSeatCategories]: any = await db.query(
+      'SELECT seat_category_id, name FROM SSD.SeatCategory WHERE event_id = ?',
+      [eventId]
+    );
+
+    const [updatedEventDates]: any = await db.query(
+      'SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?',
+      [eventId]
+    );
+
+    // Clear old available seats
+    await db.query('DELETE FROM SSD.AvailableSeats WHERE seat_category_id IN (SELECT seat_category_id FROM SSD.SeatCategory WHERE event_id = ?)', [eventId]);
+
+    // Reinsert available seats
+    for (const seatCategory of updatedSeatCategories) {
+      const seatLimit = seatLimitMap[seatCategory.name] || 0;
+      for (const eventDate of updatedEventDates) {
+        await db.query(
+          'INSERT INTO SSD.AvailableSeats (seat_category_id, event_date_id, available_seats) VALUES (?, ?, ?)',
+          [seatCategory.seat_category_id, eventDate.event_date_id, seatLimit]
+        );
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error updating event:', err);
