@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { emailChecker } from '@/app/(model)/(auth)/(forgot_password)/emailChecker.route';
+import { otpChecker } from '@/app/(model)/(auth)/(forgot_password)/otpChecker.route';
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,9 +7,29 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, otp } = body;
 
-    console.log("email: ", email);
-    console.log("otp: ", otp);
+    const result = await otpChecker(email, otp);
     
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, 
+          message: result.message 
+        },
+        { status: 400 }
+      );
+    }
+
+    const response = NextResponse.json({
+    success: result.success,
+    message: result.message,
+    userId: result.userId
+    });
+
+    // Need to issue Forget-password JWT Cookie
+    // (input Cookie code.)
+  
+
+    return response;
+
 
   } catch (error) {
     console.error('Forget-otp API error:', error);
