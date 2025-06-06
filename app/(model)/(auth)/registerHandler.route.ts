@@ -1,15 +1,17 @@
-import { db } from '@/lib/db'; // adjust the path as needed
+import { db } from '@/lib/db';
+import { sendRegistrationEmail } from '@/app/(model)/(auth)/(register)/sendRegistrationEmail.route';
 
 export async function registerHandler(email: string, password: string): Promise<{ success: boolean; message: string }> {
-  console.log('Register handler called with:', email, password);
-
   try {
     const [result] = await db.query(
       'INSERT INTO SSD.User (email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, ?)',
       [email, password, 'procurer', 0, false]
     );
 
-    console.log('Insert successful:', result);
+    const emailResult = await sendRegistrationEmail(email);
+    if (!emailResult.success) {
+      console.warn('Email failed:', emailResult.message);
+    }
 
     return {
       success: true,
@@ -17,7 +19,6 @@ export async function registerHandler(email: string, password: string): Promise<
     };
   } catch (error: any) {
     console.error('DB Insert Error:', error);
-
     return {
       success: false,
       message: 'User Registration Failed.',
