@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { otpChecker } from '@/app/(model)/(auth)/(forgot_password)/otpChecker.route';
+import { issueForgotPasswordToken } from '@/app/(model)/(auth)/(token)/(forgot_password)/issueForgotPasswordToken.route';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,15 +19,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Need to issue Forget-password JWT Cookie
+    const forgotPasswordToken = await issueForgotPasswordToken({ userId: String(result.userId) });
+    if (!forgotPasswordToken.success) {
+      return  NextResponse.json(
+        { success: false, 
+          message: forgotPasswordToken.message 
+        },
+        { status: 400 }
+      );
+    }
+
     const response = NextResponse.json({
-    success: result.success,
-    message: result.message,
+    success: forgotPasswordToken.success,
+    message: forgotPasswordToken.message,
     userId: result.userId
     });
 
-    // Need to issue Forget-password JWT Cookie
-    // (input Cookie code.)
-  
+    if (forgotPasswordToken.success && typeof forgotPasswordToken.token === 'string') {
+      response.cookies.set('forgot_password_token', forgotPasswordToken.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        path: '/',
+      });
+    } 
 
     return response;
 

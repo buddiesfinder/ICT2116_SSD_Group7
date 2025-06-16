@@ -7,21 +7,10 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [resetToken, setResetToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    // Get reset token from sessionStorage
-    const storedToken = sessionStorage.getItem('reset_token');
-    if (!storedToken) {
-      // router.push('/forgot-password');
-      return;
-    }
-    setResetToken(storedToken);
-  }, [router]);
 
   const validatePassword = (password: string) => {
     const minLength = password.length >= 8;
@@ -61,10 +50,9 @@ export default function ResetPasswordPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/reset-password', {
+      const res = await fetch('/api/forgot-password-reset', {
         method: 'POST',
         body: JSON.stringify({ 
-          resetToken, 
           newPassword 
         }),
         headers: { 'Content-Type': 'application/json' },
@@ -73,12 +61,9 @@ export default function ResetPasswordPage() {
       const data = await res.json();
 
       if (data.success) {
-        // Clear session storage
-        sessionStorage.removeItem('reset_email');
-        sessionStorage.removeItem('reset_token');
         
         // Redirect to login with success message
-        router.push('/login?message=password-reset-success');
+        router.push('/login');
       } else {
         setError(data.message || 'Failed to reset password. Please try again.');
       }
