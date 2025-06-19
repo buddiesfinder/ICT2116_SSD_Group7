@@ -152,9 +152,9 @@ import { v4 as uuidv4 } from 'uuid';
 // GET: /api/events/[event_id]
 export async function GET(
     req: NextRequest,
-  context: { params: { event_id: string } } 
+  { params }: { params: { event_id: string } } } 
 ) {
-  const { event_id } = context.params;
+  const event_id = params.event_id;
   try {
     const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [event_id]);
     const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [event_id]);
