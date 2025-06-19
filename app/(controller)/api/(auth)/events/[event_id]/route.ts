@@ -152,7 +152,7 @@ import { v4 as uuidv4 } from 'uuid';
 // GET: /api/events/[event_id]
 export async function GET(
     req: NextRequest,
-  { params }: { params: { event_id: string } } } 
+  { params }: { params: { event_id: string } } 
 ) {
   const event_id = params.event_id;
   try {
