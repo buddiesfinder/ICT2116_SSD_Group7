@@ -152,15 +152,15 @@ import { v4 as uuidv4 } from 'uuid';
 // GET: /api/events/[event_id]
 export async function GET(
     req: NextRequest,
-  context: { params: { eventId: string } } 
+  context: { params: { event_id: string } } 
 ) {
-  const { eventId } = context.params;
+  const { event_id } = context.params;
   try {
-    const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [eventId]);
-    const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
+    const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [event_id]);
+    const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [event_id]);
     const [datesResult]: any = await db.query(
       'SELECT event_date_id, event_date, start_time, end_time FROM SSD.EventDate WHERE event_id = ?',
-      [eventId]
+      [event_id]
     );
 
     const [availableSeats]: any = await db.query(
@@ -169,7 +169,7 @@ export async function GET(
        WHERE event_date_id IN (
          SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?
        )`,
-      [eventId]
+      [event_id]
     );
 
     const event = eventResult[0];
