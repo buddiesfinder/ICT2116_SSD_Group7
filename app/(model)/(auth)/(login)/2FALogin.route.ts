@@ -8,6 +8,7 @@ export async function SecondLoginFactor(userId: number, otp: string): Promise<{
   message: string;
   userId?: number; 
   token?: string;
+  role?: string;
 }> {
   
   try {    
@@ -68,7 +69,8 @@ export async function SecondLoginFactor(userId: number, otp: string): Promise<{
       success: true,
       message: 'Login Second Factor Successful',
       token: issue_token.token,
-      userId: users[0].user_id
+      userId: users[0].user_id,
+      role: users[0].role 
     };
     
   } catch (error: any) {

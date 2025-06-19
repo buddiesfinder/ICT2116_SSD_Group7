@@ -5,6 +5,7 @@ import { SecondLoginFactor } from '@/app/(model)/(auth)/(login)/2FALogin.route';
 export async function POST(request: NextRequest) {
   try {
     const { userId, otp } = await request.json();
+
     if (!userId || !otp) {
       return NextResponse.json(
         { success: false, message: 'Missing userId or OTP' },
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await SecondLoginFactor(userId, otp);
-    console.log('LoginHandler result:', result); // just to check if the loginHandler is working
+    console.log('LoginHandler result:', result); // debug check
 
     if (!result.success) {
       return NextResponse.json(
@@ -22,22 +23,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-     // return result in http response format (with status code)
+    // ✅ Include role in response
     const response = NextResponse.json({
-    success: result.success,
-    message: result.message,
-    userId: result.userId,
-  }, { status: result.success ? 200 : 401 });
+      success: result.success,
+      message: result.message,
+      userId: result.userId,
+      role: result.role,
+    }, { status: 200 });
 
-    // Set token of log in.
-      if (result.success && result.token) {
-        response.cookies.set('refresh_token', result.token, {
+    // ✅ Set login token
+    if (result.token) {
+      response.cookies.set('refresh_token', result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 24 * 60 * 60, // maximum time it can live on the browser in seconds (30 days)
+        maxAge: 30 * 24 * 60 * 60, // 30 days
+        path: '/',
+      });
+
+      // ✅ Set role cookie (readable by frontend/middleware)
+      response.cookies.set('role', result.role || '', {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60,
         path: '/',
       });
     }
+
     return response;
 
   } catch (error) {
