@@ -192,7 +192,7 @@ export async function GET(
 
 // PUT: /api/events/[event_id]
 export async function PUT(req: NextRequest, { params }: { params: { event_id: string } }) {
-  const eventId = params.event_id;
+  const event_id = params.event_id;
 
   try {
     const formData = await req.formData();
@@ -219,28 +219,28 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
     if (imageUrl) {
       await db.query(
         'UPDATE SSD.Event SET title = ?, picture = ?, description = ?, location = ? WHERE event_id = ?',
-        [title, imageUrl, description, location, eventId]
+        [title, imageUrl, description, location, event_id]
       );
     } else {
       await db.query(
         'UPDATE SSD.Event SET title = ?, description = ?, location = ? WHERE event_id = ?',
-        [title, description, location, eventId]
+        [title, description, location, event_id]
       );
     }
 
-    await db.query('DELETE FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
+    await db.query('DELETE FROM SSD.SeatCategory WHERE event_id = ?', [event_id]);
     for (const category of categories) {
       await db.query(
         'INSERT INTO SSD.SeatCategory (event_id, name, price) VALUES (?, ?, ?)',
-        [eventId, category.name, category.price]
+        [event_id, category.name, category.price]
       );
     }
 
-    await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [eventId]);
+    await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [event_id]);
     for (const { event_date, start_time, end_time } of dates) {
       await db.query(
         'INSERT INTO SSD.EventDate (event_id, event_date, start_time, end_time) VALUES (?, ?, ?, ?)',
-        [eventId, event_date, start_time, end_time]
+        [event_id, event_date, start_time, end_time]
       );
     }
 
@@ -252,15 +252,15 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
 
     const [updatedSeatCategories]: any = await db.query(
       'SELECT seat_category_id, name FROM SSD.SeatCategory WHERE event_id = ?',
-      [eventId]
+      [event_id]
     );
 
     const [updatedEventDates]: any = await db.query(
       'SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?',
-      [eventId]
+      [event_id]
     );
 
-    await db.query('DELETE FROM SSD.AvailableSeats WHERE seat_category_id IN (SELECT seat_category_id FROM SSD.SeatCategory WHERE event_id = ?)', [eventId]);
+    await db.query('DELETE FROM SSD.AvailableSeats WHERE seat_category_id IN (SELECT seat_category_id FROM SSD.SeatCategory WHERE event_id = ?)', [event_id]);
 
     for (const seatCategory of updatedSeatCategories) {
       const seatLimit = seatLimitMap[seatCategory.name] || 0;
@@ -281,10 +281,10 @@ export async function PUT(req: NextRequest, { params }: { params: { event_id: st
 
 // DELETE: /api/events/[event_id]
 export async function DELETE(req: NextRequest, { params }: { params: { event_id: string } }) {
-  const eventId = params.event_id;
+  const event_id = params.event_id;
   try {
-    await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [eventId]);
-    await db.query('DELETE FROM SSD.Event WHERE event_id = ?', [eventId]);
+    await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [event_id]);
+    await db.query('DELETE FROM SSD.Event WHERE event_id = ?', [event_id]);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Error deleting event:', err);
