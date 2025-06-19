@@ -149,15 +149,9 @@ import path from 'path';
 import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 
-type EventContext = {
-  params: {
-    event_id: string;
-  };
-};
-
 // GET: /api/events/[event_id]
-export async function GET(_: NextRequest, context: EventContext) {
-  const eventId = context.params.event_id;
+export async function GET(req: NextRequest, { params }: { params: { event_id: string } }) {
+  const eventId = params.event_id;
   try {
     const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [eventId]);
     const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
@@ -168,10 +162,10 @@ export async function GET(_: NextRequest, context: EventContext) {
 
     const [availableSeats]: any = await db.query(
       `SELECT seat_category_id, event_date_id, available_seats
-      FROM SSD.AvailableSeats
-      WHERE event_date_id IN (
-        SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?
-      )`,
+       FROM SSD.AvailableSeats
+       WHERE event_date_id IN (
+         SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?
+       )`,
       [eventId]
     );
 
@@ -194,8 +188,8 @@ export async function GET(_: NextRequest, context: EventContext) {
 }
 
 // PUT: /api/events/[event_id]
-export async function PUT(req: NextRequest, context: EventContext) {
-  const eventId = context.params.event_id;
+export async function PUT(req: NextRequest, { params }: { params: { event_id: string } }) {
+  const eventId = params.event_id;
 
   try {
     const formData = await req.formData();
@@ -210,7 +204,6 @@ export async function PUT(req: NextRequest, context: EventContext) {
 
     let imageUrl: string | null = null;
 
-    // Handle new file upload
     if (file && typeof file !== 'string') {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -220,7 +213,6 @@ export async function PUT(req: NextRequest, context: EventContext) {
       imageUrl = `/uploads/${filename}`;
     }
 
-    // Update event details
     if (imageUrl) {
       await db.query(
         'UPDATE SSD.Event SET title = ?, picture = ?, description = ?, location = ? WHERE event_id = ?',
@@ -233,7 +225,6 @@ export async function PUT(req: NextRequest, context: EventContext) {
       );
     }
 
-    // Update seat category pricing
     await db.query('DELETE FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
     for (const category of categories) {
       await db.query(
@@ -242,7 +233,6 @@ export async function PUT(req: NextRequest, context: EventContext) {
       );
     }
 
-    // Update event dates
     await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [eventId]);
     for (const { event_date, start_time, end_time } of dates) {
       await db.query(
@@ -251,7 +241,6 @@ export async function PUT(req: NextRequest, context: EventContext) {
       );
     }
 
-    // Re-insert AvailableSeats for updated seat categories and dates
     const seatLimitMap: Record<string, number> = {
       Premium: 50,
       Standard: 100,
@@ -268,10 +257,8 @@ export async function PUT(req: NextRequest, context: EventContext) {
       [eventId]
     );
 
-    // Clear old available seats
     await db.query('DELETE FROM SSD.AvailableSeats WHERE seat_category_id IN (SELECT seat_category_id FROM SSD.SeatCategory WHERE event_id = ?)', [eventId]);
 
-    // Reinsert available seats
     for (const seatCategory of updatedSeatCategories) {
       const seatLimit = seatLimitMap[seatCategory.name] || 0;
       for (const eventDate of updatedEventDates) {
@@ -290,8 +277,8 @@ export async function PUT(req: NextRequest, context: EventContext) {
 }
 
 // DELETE: /api/events/[event_id]
-export async function DELETE(_: NextRequest, context: EventContext) {
-  const eventId = context.params.event_id;
+export async function DELETE(req: NextRequest, { params }: { params: { event_id: string } }) {
+  const eventId = params.event_id;
   try {
     await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [eventId]);
     await db.query('DELETE FROM SSD.Event WHERE event_id = ?', [eventId]);
