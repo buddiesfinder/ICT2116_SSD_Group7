@@ -2,6 +2,8 @@ export async function sendEmailHandler(
     sendTo: string,
     subject: string,
     body: string,
+    attachments?: any[]
+
 
 ): Promise<{
   success: boolean;
@@ -19,6 +21,7 @@ export async function sendEmailHandler(
         to: sendTo,
         subject: subject,
         body: body,
+        attachments: attachments || [],
       }),
     });
 

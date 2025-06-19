@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { db } from '@/lib/db';
+import QRCode from 'qrcode';
+import { sendEmailHandler } from '@/app/(model)/(email)/sendEmail.route';
 
 export const config = {
   api: {
@@ -27,31 +29,83 @@ export async function POST(req: NextRequest) {
 
   //Payment Success
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const transaction_id = session.metadata?.transaction_id;
+  const session = event.data.object as Stripe.Checkout.Session;
+  const transaction_id = session.metadata?.transaction_id;
 
-    if (!transaction_id) {
-      console.warn('No transaction_id in metadata (completed)');
-      return NextResponse.json({ error: 'Missing transaction_id' }, { status: 400 });
-    }
-
-    try {
-      await db.query(
-        `UPDATE Transaction SET status = 'paid', paid_at = NOW() WHERE transaction_id = ?`,
-        [transaction_id]
-      );
-
-      await db.query(
-        `UPDATE Booking SET status = 'paid' WHERE transaction_id = ?`,
-        [transaction_id]
-      );
-
-      console.log(`Transaction ${transaction_id} marked as paid.`);
-    } catch (dbError) {
-      console.error('DB error updating payment status:', dbError);
-      return NextResponse.json({ error: 'Database update failed' }, { status: 500 });
-    }
+  if (!transaction_id) {
+    console.warn('No transaction_id in metadata (completed)');
+    return NextResponse.json({ error: 'Missing transaction_id' }, { status: 400 });
   }
+
+  try {
+    // 1. Update DB
+    await db.query(
+      `UPDATE Transaction SET status = 'paid', paid_at = NOW() WHERE transaction_id = ?`,
+      [transaction_id]
+    );
+
+    await db.query(
+      `UPDATE Booking SET status = 'paid' WHERE transaction_id = ?`,
+      [transaction_id]
+    );
+
+    // 2. Fetch user email
+    const [[userRow]]: any = await db.query(
+      `SELECT u.email 
+       FROM Transaction t 
+       JOIN SSD.User u ON t.user_id = u.user_id 
+       WHERE t.transaction_id = ?`,
+      [transaction_id]
+    );
+
+    const user_email = userRow?.email;
+
+    if (!user_email) {
+      console.warn('Email not found for transaction:', transaction_id);
+      return NextResponse.json({ error: 'User email not found' }, { status: 404 });
+    }
+
+    // 3. Generate QR Code (encoded with transaction_id or booking URL)
+    const qrContent = `${process.env.NEXT_PUBLIC_BASE_URL}/verify?transaction_id=${transaction_id}`;
+    const qrDataURL = await QRCode.toDataURL(qrContent);
+    const base64QR = qrDataURL.replace(/^data:image\/png;base64,/, '');
+
+    // 4. Prepare HTML body with embedded image
+    const emailHtml = `
+        <h2>🎟️ Your Ticket Purchase is Confirmed!</h2>
+        <p>Thank you for your purchase. Please find your QR code below:</p>
+        <img src="cid:ticketqr" alt="QR Code" style="width: 200px; height: 200px;" />
+        <p>Show this at the event entrance for verification.</p>
+      `;
+    
+
+    // 5. Send email
+    const emailResult = await sendEmailHandler(
+        user_email,
+        "Your Concert Ticket Confirmation",
+        emailHtml,
+        [
+          {
+            filename: "ticket.png",
+            content: base64QR,
+            encoding: "base64",
+            cid: "ticketqr"
+          }
+        ]
+      );
+
+      if (!emailResult.success) {
+        console.error('Email failed:', emailResult.message);
+      }
+
+      console.log(`Confirmation email sent to ${user_email}`);
+      return NextResponse.json({ received: true });
+
+    } catch (dbError) {
+      console.error('Error in post-payment email/QR:', dbError);
+      return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
+    }
+}
 
   //Payment Timeout
   if (event.type === 'checkout.session.expired') {
