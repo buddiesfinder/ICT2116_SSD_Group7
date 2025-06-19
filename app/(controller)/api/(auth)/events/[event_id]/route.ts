@@ -5,8 +5,11 @@ import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 
 // GET: /api/events/[event_id]
-export async function GET(_: NextRequest, { params }: { params: { event_id: string } }) {
-  const eventId = params.event_id;
+export async function GET(
+    req: NextRequest,
+  context: { params: { eventId: string } } 
+) {
+  const { eventId } = context.params;
   try {
     const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [eventId]);
     const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [eventId]);
