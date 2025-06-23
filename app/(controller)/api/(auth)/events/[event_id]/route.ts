@@ -149,15 +149,14 @@ import path from 'path';
 import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 
-import type { RouteHandlerContext } from 'next/dist/server/web/types'
 
 
 // GET: /api/events/[event_id]
 export async function GET(
   req: NextRequest,
-  context: RouteHandlerContext
+  context: { params: { event_id: string } }
 ) {
-  const event_id = context.params?.event_id;
+  const event_id = context.params.event_id;
   try {
     const [eventResult]: any = await db.query('SELECT * FROM SSD.Event WHERE event_id = ?', [event_id]);
     const [seatCategoryResult]: any = await db.query('SELECT * FROM SSD.SeatCategory WHERE event_id = ?', [event_id]);
@@ -196,9 +195,9 @@ export async function GET(
 // PUT: /api/events/[event_id]
 export async function PUT(
   req: NextRequest,
-  context: RouteHandlerContext
+  context: { params: { event_id: string } }
 ) {
-  const event_id = context.params?.event_id;
+  const event_id = context.params.event_id;
   try {
     const formData = await req.formData();
     const title = formData.get('title') as string;
@@ -287,9 +286,9 @@ export async function PUT(
 // DELETE: /api/events/[event_id]
 export async function DELETE(
   req: NextRequest,
-  context: RouteHandlerContext
+  context: { params: { event_id: string } }
 ) {
-  const event_id = context.params?.event_id;
+  const event_id = context.params.event_id;
   try {
     await db.query('DELETE FROM SSD.EventDate WHERE event_id = ?', [event_id]);
     await db.query('DELETE FROM SSD.Event WHERE event_id = ?', [event_id]);
