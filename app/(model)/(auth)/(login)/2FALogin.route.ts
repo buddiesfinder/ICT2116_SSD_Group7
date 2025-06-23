@@ -25,7 +25,7 @@ export async function SecondLoginFactor(userId: number, otp: string): Promise<{
       console.log('No matching user found');
       return {
         success: false,
-        message: 'Invalid user Id'
+        message: 'Invalid user Id or Password'
       };
     }
 
