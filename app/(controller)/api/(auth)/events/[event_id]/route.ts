@@ -154,7 +154,7 @@ import { v4 as uuidv4 } from 'uuid';
 // GET: /api/events/[event_id]
 export async function GET(
   req: NextRequest,
-  context: { params: { event_id: string } }
+  context: { params: Record<string, string> }
 ) {
   const event_id = context.params.event_id;
   try {
@@ -195,7 +195,8 @@ export async function GET(
 // PUT: /api/events/[event_id]
 export async function PUT(
   req: NextRequest,
-  context: { params: { event_id: string } }
+  context: { params: Record<string, string> }
+
 ) {
   const event_id = context.params.event_id;
   try {
@@ -286,7 +287,8 @@ export async function PUT(
 // DELETE: /api/events/[event_id]
 export async function DELETE(
   req: NextRequest,
-  context: { params: { event_id: string } }
+  context: { params: Record<string, string> }
+
 ) {
   const event_id = context.params.event_id;
   try {
