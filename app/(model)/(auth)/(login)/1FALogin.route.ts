@@ -23,7 +23,7 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
       console.log('No matching user found');
       return {
         success: false,
-        message: 'Invalid email'
+        message: 'Invalid Email or Password'
       };
     }
 
@@ -89,7 +89,7 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
 
       return {
         success: false,
-        message: 'Invalid Password',
+        message: 'Invalid Email or Password',
       }
     }
 
