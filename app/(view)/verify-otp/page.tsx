@@ -7,7 +7,8 @@ interface OTPInputProps {
   userId?: string;
 }
 
-export default function OTPInput({ 
+// Separate the OTP component from the page component
+function OTPInput({ 
   length = 6,
   userId 
 }: OTPInputProps) {
@@ -375,4 +376,16 @@ export default function OTPInput({
       </div>
     </div>
   );
+}
+
+// Define proper Next.js 15 page props
+interface VerifyOTPPageProps {
+  params?: Promise<Record<string, string>>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}
+
+// Page component that Next.js expects
+export default function VerifyOTPPage({ params, searchParams }: VerifyOTPPageProps) {
+  // The page component just renders the OTP input without any props that conflict with Next.js
+  return <OTPInput length={6} />;
 }
