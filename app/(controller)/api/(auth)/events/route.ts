@@ -102,12 +102,23 @@ export async function GET() {
   try {
     const [rows] = await db.query(`
       SELECT 
-        e.*, 
+        e.event_id,
+        e.title,
+        e.picture,
+        e.description,
+        e.location,
+        e.created_at,
         MIN(sc.price) AS lowest_price
       FROM SSD.Event e
       LEFT JOIN SSD.SeatCategory sc ON sc.event_id = e.event_id
-      GROUP BY e.event_id
-      ORDER BY e.created_at DESC
+      GROUP BY 
+        e.event_id,
+        e.title,
+        e.picture,
+        e.description,
+        e.location,
+        e.created_at
+      ORDER BY e.created_at DESC;
       `);
     return NextResponse.json({ success: true, events: rows });
   } catch (err) {

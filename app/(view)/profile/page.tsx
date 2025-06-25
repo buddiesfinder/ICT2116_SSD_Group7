@@ -2,10 +2,11 @@ import { cookies } from 'next/headers';
 import { decodeJwt } from '@/lib/jwt';
 import { db } from '@/lib/db';
 import ClientPage from './Clientpage';
+import ResetPasswordPage from './ResetPasswordPage';
 
 export default async function ProfilePage() {
   const cookieStore = await cookies(); 
-  const token = cookieStore.get('refresh_token')?.value;
+  const token = cookieStore.get('refresh_token')?.value ?? null;
 
   let email: string | null = null;
   let role: string | null = null;
@@ -29,5 +30,9 @@ export default async function ProfilePage() {
     }
   }
 
-  return <ClientPage name={name} email={email} role={role} />;
+  return <>
+    <ClientPage email={email} role ={role} /> 
+    <ResetPasswordPage token={token}/>
+    </>;
+
 }
