@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
             filename: "ticket.png",
             content: base64QR,
             encoding: "base64",
+            contentType: "image/png",
             cid: "ticketqr"
           }
         ]
