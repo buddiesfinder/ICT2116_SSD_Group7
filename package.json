@@ -11,13 +11,15 @@
   "dependencies": {
     "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
+    "form-data": "^4.0.3",
     "ioredis": "^5.6.1",
     "js-cookie": "^3.0.5",
     "js-sha1": "^0.7.0",
     "mysql2": "^3.14.1",
-    "next": "^15.3.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "next": "15.3.2",
+    "node-fetch": "^3.3.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-google-recaptcha": "^3.1.0",
     "stripe": "^18.1.1",
     "uuid": "^11.1.0"

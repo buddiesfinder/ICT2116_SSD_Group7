@@ -1,44 +1,35 @@
+import fetch from 'node-fetch'; // ⬅ override global fetch
+import FormData from 'form-data';
+
+
 export async function sendEmailHandler(
-    sendTo: string,
-    subject: string,
-    body: string,
+  to: string,
+  subject: string,
+  body: string,
+  attachment?: Blob
+) {                              
+  const form = new FormData();
+  form.append('to', to);
+  form.append('subject', subject);
+  form.append('body', body);
+  if (attachment) form.append('attachment', attachment, (attachment as any).name);
 
-): Promise<{
-  success: boolean;
-  message: string;
-  data?: any;
-}> {
-  try {
-    const response = await fetch(process.env.EMAIL_API as string, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.EMAIL_SECRET}` as string, 
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        to: sendTo,
-        subject: subject,
-        body: body,
-      }),
-    });
+  const res = await fetch(process.env.EMAIL_API!, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.EMAIL_SECRET}`,
+      ...form.getHeaders(),        // ← adds Content-Length + multipart boundary
+    },
+    body: form,
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      return {
-        success: false,
-        message: `Email service responded with error: ${errorText}`,
-      };
-    }
+  // ------------- new robust parsing -------------
+  const raw = await res.text();    // works for both plain text OR JSON
+  let parsed: any;
+  try { parsed = JSON.parse(raw); } catch { parsed = {}; }
 
-    return {
-      success: true,
-      message: 'Email sent successfully',
-    };
-  } catch (error: any) {
-    console.error('Email sending error:', error);
-    return {
-      success: false,
-      message: 'Failed to send email',
-    };
-  }
+  return {
+    success: res.ok,
+    message: parsed.message ?? raw.trim(),
+  } as const;
 }
