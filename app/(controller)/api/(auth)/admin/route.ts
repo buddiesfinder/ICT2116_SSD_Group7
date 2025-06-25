@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { decodeJwt } from '@/lib/jwt';
 
-// GET /api/admin
-export async function GET() {
+// Utility: ensure token and admin role
+async function isAdmin(req: NextRequest) {
+  const token = req.cookies.get('refresh_token')?.value;
+  if (!token) return null;
+
+  try {
+    const { payload } = decodeJwt(token);
+    return payload.role === 'admin' ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+// GET /api/admin → List admins
+export async function GET(req: NextRequest) {
+  const admin = await isAdmin(req);
+  if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
+
   try {
     const [admins] = await db.query(`
       SELECT user_id, name, email, suspended
@@ -18,8 +35,11 @@ export async function GET() {
   }
 }
 
-// POST → create new admin
+// POST /api/admin → Create new admin
 export async function POST(req: NextRequest) {
+  const admin = await isAdmin(req);
+  if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
+
   try {
     const { name, email, password } = await req.json();
 
@@ -27,17 +47,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if email already exists
     const [existing] = await db.query(
       'SELECT user_id FROM User WHERE email = ?',
       [email]
-    )as [Array<{ user_id: number }>, any];
+    ) as [Array<{ user_id: number }>, any];
 
     if (existing.length > 0) {
       return NextResponse.json({ success: false, message: 'Email is already in use' }, { status: 409 });
     }
 
-    // Insert admin user
     await db.query(
       'INSERT INTO User (name, email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, 0, false)',
       [name, email, password, 'admin']
@@ -50,8 +68,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// PUT → toggle suspended status
+// PUT /api/admin → Ban/unban admin
 export async function PUT(req: NextRequest) {
+  const admin = await isAdmin(req);
+  if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
+
   try {
     const { user_id, suspended } = await req.json();
 
