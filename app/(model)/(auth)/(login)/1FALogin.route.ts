@@ -77,12 +77,12 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
 
     }
 
-    // Check if password matches using bcrypt
+    // Compare the provided password with the hashed password
     const match = await bcrypt.compare(password, users[0].password);
-    
-    if (!match) {
-      console.log("Password incorrect");
 
+    // Check if the password matches
+    if (!match) {
+      console.log('Password does not match');
       // Increase login_attempts by 1
       const newAttempts = users[0].login_attempts + 1;
       await db.query(
@@ -95,7 +95,7 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
         message: 'Invalid Email or Password',
       }
     }
-
+    
     // Password is correct — reset login attempts to 0
     await db.query(
       'UPDATE SSD.User SET login_attempts = 0 WHERE user_id = ?',

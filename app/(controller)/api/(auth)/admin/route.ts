@@ -1,6 +1,9 @@
+import bcrypt from 'bcrypt';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { decodeJwt } from '@/lib/jwt';
+
+const SALT_ROUNDS = 20; // Cost Factor for bcrypt
 
 // Utility: ensure token and admin role
 async function isAdmin(req: NextRequest) {
@@ -56,9 +59,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Email is already in use' }, { status: 409 });
     }
 
+    // Hash the password with bcrypt
+    const adminhashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+
     await db.query(
       'INSERT INTO User (name, email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, 0, false)',
-      [name, email, password, 'admin']
+      [name, email, adminhashedPassword, 'admin']
     );
 
     return NextResponse.json({ success: true, message: 'Admin created successfully' });
