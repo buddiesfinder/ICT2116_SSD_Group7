@@ -252,7 +252,6 @@ function OTPInput({
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Verification Successful!</h2>
             <p className="text-gray-300 mb-2">Your account has been verified successfully.</p>
-            <p className="text-gray-400 text-sm mb-6">User ID: {sessionUserId}</p>
             <button
               onClick={() => {router.push('/');}}
               className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-400 hover:to-purple-400 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
@@ -277,9 +276,6 @@ function OTPInput({
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Enter Verification Code</h1>
             <p className="text-gray-300">We've sent a 6-digit code to your email</p>
-            {sessionUserId && (
-              <p className="text-gray-500 text-xs mt-2">Session: {sessionUserId}</p>
-            )}
           </div>
 
           <div className="space-y-6">
