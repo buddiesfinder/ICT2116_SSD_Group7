@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { db } from '@/lib/db'; // adjust the path as needed
 import { sendOtp } from '../(otp)/sendOtp.route';
 
@@ -76,8 +77,10 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
 
     }
 
-    // Check if password matches
-    if (password != users[0].password) {
+    // Check if password matches using bcrypt
+    const match = await bcrypt.compare(password, users[0].password);
+    
+    if (!match) {
       console.log("Password incorrect");
 
       // Increase login_attempts by 1
