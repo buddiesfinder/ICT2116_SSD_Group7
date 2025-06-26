@@ -10,14 +10,17 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies(); 
+  const cookieStore = await cookies();
   const token = cookieStore.get('refresh_token')?.value;
 
   let email: string | null = null;
+  let role: string | null = null;
+
   if (token) {
     try {
       const { payload } = decodeJwt(token);
       email = payload.user_email ?? null;
+      role = payload.role ?? null;
     } catch (e) {
       console.error('Invalid token', e);
     }
@@ -26,7 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className="bg-black text-white">
-        <Navbar email={email} />
+        <Navbar email={email} role={role} />
         <main className="p-6">{children}</main>
       </body>
     </html>

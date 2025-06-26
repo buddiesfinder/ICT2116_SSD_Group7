@@ -31,7 +31,7 @@ export default async function ProfilePage() {
   }
 
   return <>
-    <ClientPage email={email} role ={role} name="test name"/> 
+    <ClientPage email={email} role ={role} name={name}/> 
     <ResetPasswordPage token={token}/>
     </>;
 

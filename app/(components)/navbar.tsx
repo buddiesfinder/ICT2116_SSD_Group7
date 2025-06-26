@@ -1,15 +1,23 @@
 import Link from 'next/link';
 
-const links = [
-  { href: '/', label: 'Home' },
-  { href: '/event', label: 'Manage Events' },
-  { href: '/admin', label: 'Manage Admins' },
-  { href: '/profile', label: 'Profile' },
-  { href: '/payment', label: 'Payment' },
-];
+interface NavbarProps {
+  email: string | null;
+  role: string | null;
+}
 
-export default function Navbar({ email }: { email: string | null }) {
+export default function Navbar({ email, role }: NavbarProps) {
+  const isAdmin = role === 'admin';
 
+  const links = [
+    { href: '/', label: 'Home' },
+    ...(isAdmin
+      ? [
+          { href: '/event', label: 'Manage Events' },
+          { href: '/admin', label: 'Manage Admins' },
+        ]
+      : []),
+    { href: '/profile', label: 'Profile' },
+  ];
 
   return (
     <nav className="bg-zinc-900 text-white px-6 py-4 border-b border-zinc-700 flex justify-between items-center">
@@ -18,7 +26,7 @@ export default function Navbar({ email }: { email: string | null }) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className={`hover:underline`}
+              className="hover:underline"
             >
               {link.label}
             </Link>
