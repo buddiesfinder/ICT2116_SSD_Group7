@@ -11,8 +11,8 @@ export async function sendOtp(user_id: number): Promise<{
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
 
-      const [rows] = await db.query(
-            'SELECT email FROM SSD.User WHERE user_id = ?',
+      const [rows] = await db.execute(
+            'SELECT email FROM User WHERE user_id = ?',
             [user_id]
           );
           

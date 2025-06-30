@@ -24,8 +24,8 @@ export async function resetNewPassword (
     }
 
     // get user email
-    const [rows]: any = await db.query(
-      `SELECT email FROM SSD.User WHERE user_id = ?`,
+    const [rows]: any = await db.execute(
+      `SELECT email FROM User WHERE user_id = ?`,
       [payload.userId]
     );
 
