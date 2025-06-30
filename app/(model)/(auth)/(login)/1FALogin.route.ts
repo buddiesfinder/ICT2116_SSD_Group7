@@ -12,8 +12,8 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
   
   try {
     // Query the database for a user with matching email and password
-    const [rows] = await db.query(
-      'SELECT * FROM SSD.User WHERE email = ?',
+    const [rows] = await db.execute(
+      'SELECT * FROM User WHERE email = ?',
       [email]
     );
     
@@ -85,8 +85,8 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
       console.log('Password does not match');
       // Increase login_attempts by 1
       const newAttempts = users[0].login_attempts + 1;
-      await db.query(
-        'UPDATE SSD.User SET login_attempts = ? WHERE user_id = ?',
+      await db.execute(
+        'UPDATE User SET login_attempts = ? WHERE user_id = ?',
         [newAttempts, users[0].user_id]
       );
 
@@ -97,8 +97,8 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
     }
     
     // Password is correct — reset login attempts to 0
-    await db.query(
-      'UPDATE SSD.User SET login_attempts = 0 WHERE user_id = ?',
+    await db.execute(
+      'UPDATE User SET login_attempts = 0 WHERE user_id = ?',
       [users[0].user_id]
     );
     
