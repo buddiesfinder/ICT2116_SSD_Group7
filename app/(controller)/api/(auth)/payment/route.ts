@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         }, 0);
 
         //Create new transaction record
-        const [transactionResult]: any = await db.query(
+        const [transactionResult]: any = await db.execute(
         `INSERT INTO Transaction (user_id, amount, status) VALUES (?, ?, 'unpaid')`,
         [user_id, totalAmount]
         );
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             const amountPayable = ticket.price * ticket.quantity;
 
             // 1. Check available seats
-            const [availableResult]: any = await db.query(
+            const [availableResult]: any = await db.execute(
                 `SELECT available_seats 
                 FROM AvailableSeats 
                 WHERE event_date_id = ? AND seat_category_id = ?`,
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             }
 
             // 2. Insert booking
-            const [bookingResult]: any = await db.query(
+            const [bookingResult]: any = await db.execute(
                 `INSERT INTO Booking 
                 (transaction_id, user_id, event_id, quantity, status, amount_payable, booked_at, redeemed, seat_category_id, event_date_id)
                 VALUES (?, ?, ?, ?, 'reserved', ?, NOW(), 'no', ?, ?)`,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
             bookingIds.push(bookingResult.insertId);
 
             // 3. Update available seats
-            await db.query(
+            await db.execute(
                 `UPDATE AvailableSeats
                 SET available_seats = available_seats - ?
                 WHERE event_date_id = ? AND seat_category_id = ?`,

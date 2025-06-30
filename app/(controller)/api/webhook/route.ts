@@ -39,12 +39,12 @@ export async function POST(req: NextRequest) {
 
   try {
     // 1. Update DB
-    await db.query(
+    await db.execute(
       `UPDATE Transaction SET status = 'paid', paid_at = NOW() WHERE transaction_id = ?`,
       [transaction_id]
     );
 
-    await db.query(
+    await db.execute(
       `UPDATE Booking SET status = 'paid' WHERE transaction_id = ?`,
       [transaction_id]
     );

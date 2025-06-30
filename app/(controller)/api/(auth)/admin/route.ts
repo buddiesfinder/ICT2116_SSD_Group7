@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Missing required fields' }, { status: 400 });
     }
 
-    const [existing] = await db.query(
+    const [existing] = await db.execute(
       'SELECT user_id FROM User WHERE email = ?',
       [email]
     ) as [Array<{ user_id: number }>, any];
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Hash the password with bcrypt
     const adminhashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    await db.query(
+    await db.execute(
       'INSERT INTO User (name, email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, 0, false)',
       [name, email, adminhashedPassword, 'admin']
     );
@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid input' }, { status: 400 });
     }
 
-    const [rows]: any = await db.query('SELECT role FROM User WHERE user_id = ?', [user_id]);
+    const [rows]: any = await db.execute('SELECT role FROM User WHERE user_id = ?', [user_id]);
 
     if (!rows.length) {
       return NextResponse.json({ success: false, message: 'Admin not found' }, { status: 404 });
@@ -96,7 +96,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'User is not an admin' }, { status: 403 });
     }
 
-    await db.query('UPDATE User SET suspended = ? WHERE user_id = ?', [suspended, user_id]);
+    await db.execute('UPDATE User SET suspended = ? WHERE user_id = ?', [suspended, user_id]);
 
     return NextResponse.json({ success: true, message: `Admin ${suspended ? 'banned' : 'un-banned'} successfully` });
   } catch (err) {

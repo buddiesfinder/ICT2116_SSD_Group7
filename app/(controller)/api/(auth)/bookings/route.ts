@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
     }
     console.log('Decoded user from token:', user);
-    const [bookings]: any = await db.query(`
+    const [bookings]: any = await db.execute(`
       SELECT 
         b.booking_id,
         b.quantity,

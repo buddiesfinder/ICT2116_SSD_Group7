@@ -9,13 +9,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing transaction_id' }, { status: 400 });
     }
 
-    const [bookings]: any = await db.query(
+    const [bookings]: any = await db.execute(
       `SELECT seat_category_id, quantity, event_date_id FROM Booking WHERE transaction_id = ?`,
       [transaction_id]
     );
 
     for (const booking of bookings) {
-      await db.query(
+      await db.execute(
         `UPDATE AvailableSeats
          SET available_seats = available_seats + ?
          WHERE seat_category_id = ? AND event_date_id = ?`,
@@ -23,12 +23,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await db.query(
+    await db.execute(
       `UPDATE Transaction SET status = 'cancelled' WHERE transaction_id = ? AND status = 'unpaid'`,
       [transaction_id]
     );
 
-    await db.query(
+    await db.execute(
       `UPDATE Booking SET status = 'cancelled' WHERE transaction_id = ? AND status = 'reserved'`,
       [transaction_id]
     );

@@ -7,7 +7,7 @@ export async function sessionQuery(user_id: number): Promise<{
 }> {
    try {
     // Query to find the existing session token for the user
-    const [rows]: any = await db.query(
+    const [rows]: any = await db.execute(
       `SELECT session_token FROM Session_Token WHERE user_id = ?`,
       [user_id]
     );

@@ -269,7 +269,7 @@ export async function PUT(
       [event_id]
     );
 
-    await db.execute('DELETE FROM AvailableSeats WHERE seat_category_id IN (SELECT seat_category_id FROM SSD.SeatCategory WHERE event_id = ?)', [event_id]);
+    await db.execute('DELETE FROM AvailableSeats WHERE seat_category_id IN (SELECT seat_category_id FROM SeatCategory WHERE event_id = ?)', [event_id]);
 
     for (const seatCategory of updatedSeatCategories) {
       const seatLimit = seatLimitMap[seatCategory.name] || 0;

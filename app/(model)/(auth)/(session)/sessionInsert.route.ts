@@ -13,7 +13,7 @@ export async function sessionInsert(user_id: number): Promise<{
 
     try {
       // Try to insert the new session token
-      await db.query(
+      await db.execute(
         `
         INSERT INTO Session_Token (Token_id, user_id) VALUES (?, ?)
         ON DUPLICATE KEY UPDATE Token_id = VALUES(Token_id)
