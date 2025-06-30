@@ -21,7 +21,7 @@ export default async function ProfilePage() {
       // Get userId from JWT payload
       const userId = payload.userId;
       if (userId) {
-        const [rows] = await db.query('SELECT name FROM SSD.User WHERE user_id = ?', [userId]) as [any[], any];
+        const [rows] = await db.execute('SELECT name FROM User WHERE user_id = ?', [userId]) as [any[], any];
         name = rows[0]?.name ?? null;
       }
 

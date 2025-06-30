@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const [rows] = await db.query(
+    const [rows] = await db.execute(
       `
       SELECT 
         e.event_id,
@@ -20,8 +20,8 @@ export async function GET(req: NextRequest) {
         e.location,
         e.created_at,
         MIN(sc.price) AS lowest_price
-      FROM SSD.Event e
-      LEFT JOIN SSD.SeatCategory sc ON sc.event_id = e.event_id
+      FROM Event e
+      LEFT JOIN SeatCategory sc ON sc.event_id = e.event_id
       WHERE e.title LIKE ? OR e.location LIKE ?
       GROUP BY 
         e.event_id,

@@ -50,10 +50,10 @@ export async function POST(req: NextRequest) {
     );
 
     // 2. Fetch user email
-    const [[userRow]]: any = await db.query(
+    const [[userRow]]: any = await db.execute(
       `SELECT u.email 
        FROM Transaction t 
-       JOIN SSD.User u ON t.user_id = u.user_id 
+       JOIN User u ON t.user_id = u.user_id 
        WHERE t.transaction_id = ?`,
       [transaction_id]
     );
@@ -120,19 +120,19 @@ export async function POST(req: NextRequest) {
 
     try {
       // Mark transaction as expired
-      await db.query(
+      await db.execute(
         `UPDATE Transaction SET status = 'expired' WHERE transaction_id = ? AND status = 'unpaid'`,
         [transaction_id]
       );
 
       // Restore seats
-      const [bookings]: any = await db.query(
+      const [bookings]: any = await db.execute(
         `SELECT seat_category_id, quantity, event_date_id FROM Booking WHERE transaction_id = ?`,
         [transaction_id]
       );
 
       for (const booking of bookings) {
-        await db.query(
+        await db.execute(
           `UPDATE AvailableSeats
            SET available_seats = available_seats + ?
            WHERE seat_category_id = ? AND event_date_id = ?`,
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Mark bookings as expired
-      await db.query(
+      await db.execute(
         `UPDATE Booking SET status = 'expired' WHERE transaction_id = ?`,
         [transaction_id]
       );

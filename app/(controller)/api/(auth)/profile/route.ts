@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
     const { payload } = decodeJwt(token);
     const userId = payload.userId;
 
-    const [rows] = await db.query('SELECT name FROM SSD.User WHERE user_id = ?', [userId]) as [any[], any];
+    const [rows] = await db.execute('SELECT name FROM User WHERE user_id = ?', [userId]) as [any[], any];
     if (rows.length === 0) return NextResponse.json({ success: false, message: 'User not found' }, { status: 404 });
 
     return NextResponse.json({ success: true, name: rows[0].name });
@@ -35,7 +35,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Name is too short' }, { status: 400 });
     }
 
-    await db.query('UPDATE SSD.User SET name = ? WHERE user_id = ?', [name, userId]);
+    await db.execute('UPDATE User SET name = ? WHERE user_id = ?', [name, userId]);
     return NextResponse.json({ success: true, message: 'Name updated successfully' });
   } catch (e) {
     console.error(e);

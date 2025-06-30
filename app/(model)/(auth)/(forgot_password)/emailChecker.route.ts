@@ -12,8 +12,8 @@ export async function emailChecker(
   try {
 
     // Query the database for a user with matching email and password
-        const [rows] = await db.query(
-          'SELECT * FROM SSD.User WHERE email = ?',
+        const [rows] = await db.execute(
+          'SELECT * FROM User WHERE email = ?',
           [email]
         );
         

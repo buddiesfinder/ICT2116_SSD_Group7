@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
     }
 
     //Check for duplicate event title
-    const [existing]: any = await db.query(
-      'SELECT event_id FROM SSD.Event WHERE title = ?',
+    const [existing]: any = await db.execute(
+      'SELECT event_id FROM Event WHERE title = ?',
       [title]
     );
     if (existing.length > 0) {
@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
     const imageUrl = `/uploads/${filename}`;
 
     // Insert into Event table
-    const [eventInsertResult]: any = await db.query(
-      'INSERT INTO SSD.Event (title, picture, description, location, created_at) VALUES (?, ?, ?, ?, NOW())',
+    const [eventInsertResult]: any = await db.execute(
+      'INSERT INTO Event (title, picture, description, location, created_at) VALUES (?, ?, ?, ?, NOW())',
       [title, imageUrl, description, location]
     );
 
@@ -60,32 +60,32 @@ export async function POST(req: NextRequest) {
     // Insert pricing for each category in SeatCategory table
     for (const category of categories) {
       const seatLimit = seatLimitMap[category.name] || 0; // fallback to 0 if unknown
-      await db.query(
-        'INSERT INTO SSD.SeatCategory (event_id, name, price, seat_limit) VALUES (?, ?, ?, ?)',
+      await db.execute(
+        'INSERT INTO SeatCategory (event_id, name, price, seat_limit) VALUES (?, ?, ?, ?)',
         [eventId, category.name, category.price, seatLimit]
       );
     }      
 
     // Insert each date into EventDate table
     for (const { event_date, start_time, end_time } of dates) {
-      await db.query(
-        'INSERT INTO SSD.EventDate (event_id, event_date, start_time, end_time) VALUES (?, ?, ?, ?)',
+      await db.execute(
+        'INSERT INTO EventDate (event_id, event_date, start_time, end_time) VALUES (?, ?, ?, ?)',
         [eventId, event_date, start_time, end_time]
       );
     }
 
     // Insert the available seats 
-    const [seatCategories] = await db.query(
-      'SELECT seat_category_id, seat_limit FROM SSD.SeatCategory WHERE event_id = ?', [eventId]
+    const [seatCategories] = await db.execute(
+      'SELECT seat_category_id, seat_limit FROM SeatCategory WHERE event_id = ?', [eventId]
     ) as [Array<{ seat_category_id: number; seat_limit: number }>, any];
-    const [eventDates] = await db.query(
-      'SELECT event_date_id FROM SSD.EventDate WHERE event_id = ?', [eventId]
+    const [eventDates] = await db.execute(
+      'SELECT event_date_id FROM EventDate WHERE event_id = ?', [eventId]
     )as [Array<{ event_date_id: number }>, any];
 
     for (const category of seatCategories) {
       for (const date of eventDates) {
-        await db.query(
-          'INSERT INTO SSD.AvailableSeats (seat_category_id, event_date_id, available_seats) VALUES (?, ?, ?)',
+        await db.execute(
+          'INSERT INTO AvailableSeats (seat_category_id, event_date_id, available_seats) VALUES (?, ?, ?)',
           [category.seat_category_id, date.event_date_id, category.seat_limit]
         );
       }
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await db.execute(`
       SELECT 
         e.event_id,
         e.title,
@@ -109,8 +109,8 @@ export async function GET() {
         e.location,
         e.created_at,
         MIN(sc.price) AS lowest_price
-      FROM SSD.Event e
-      LEFT JOIN SSD.SeatCategory sc ON sc.event_id = e.event_id
+      FROM Event e
+      LEFT JOIN SeatCategory sc ON sc.event_id = e.event_id
       GROUP BY 
         e.event_id,
         e.title,

@@ -11,8 +11,8 @@ export async function passwordUpdate(user_id: string, newPassword: string): Prom
     // const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update the password in the Users table
-    const [result]: any = await db.query(
-      `UPDATE SSD.User SET password = ? WHERE user_id = ?`,
+    const [result]: any = await db.execute(
+      `UPDATE User SET password = ? WHERE user_id = ?`,
       [newPassword, user_id]
     );
 

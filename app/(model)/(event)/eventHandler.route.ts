@@ -8,8 +8,8 @@ export async function createEventHandler(event: {
   price: number;
 }) {
   try {
-    const result = await db.query(
-      `INSERT INTO SSD.Event (title, picture, description, location, created_at, price)
+    const result = await db.execute(
+      `INSERT INTO Event (title, picture, description, location, created_at, price)
        VALUES (?, ?, ?, ?, NOW(), ?)`,
       [event.title, event.picture, event.description, event.location, event.price]
     );
