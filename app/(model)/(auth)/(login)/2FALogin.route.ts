@@ -14,8 +14,8 @@ export async function SecondLoginFactor(userId: number, otp: string): Promise<{
   try {    
 
     // Query the database for a user with matching email and password
-    const [rows] = await db.query(
-      'SELECT user_id, email, role FROM SSD.User WHERE user_id = ?',
+    const [rows] = await db.execute(
+      'SELECT user_id, email, role FROM User WHERE user_id = ?',
       [userId]
     );
     

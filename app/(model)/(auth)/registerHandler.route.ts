@@ -10,8 +10,8 @@ export async function registerHandler(email: string, password: string): Promise<
     // Hash the password with bcrypt
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const [result] = await db.query(
-      'INSERT INTO SSD.User (email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, ?)',
+    const [result] = await db.execute(
+      'INSERT INTO User (email, password, role, login_attempts, suspended) VALUES (?, ?, ?, ?, ?)',
       [email, hashedPassword, 'procurer', 0, false]
     );
 
