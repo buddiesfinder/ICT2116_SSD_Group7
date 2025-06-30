@@ -1,20 +1,19 @@
 import fetch from 'node-fetch';
 import FormData from 'form-data';
 
-// Define the attachment interface
 export interface EmailAttachment {
   filename: string;
-  content: string;
+  content: string; // base64 string, optionally with data URI prefix
   encoding: 'base64';
   contentType: 'image/png' | 'image/jpeg' | 'application/pdf';
-  cid?: string; // Optional for inline images
+  cid?: string; // optional content-id for inline images
 }
 
 export async function sendEmailHandler(
   to: string,
   subject: string,
   body: string,
-  attachments?: EmailAttachment[] // Changed from Blob to EmailAttachment[]
+  attachments?: EmailAttachment[]
 ) {
   const form = new FormData();
   form.append('to', to);
@@ -23,19 +22,23 @@ export async function sendEmailHandler(
 
   if (attachments && attachments.length > 0) {
     attachments.forEach((attachment, index) => {
-      // Convert base64 to Buffer
-      const buffer = Buffer.from(attachment.content, 'base64');
-      
-      // Create the attachment with proper options
-      form.append(`attachment_${index}`, buffer, {
+      // Strip data URI prefix if present
+      const base64Data = attachment.content.replace(/^data:.*;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // Append attachment with knownLength and optional cid
+      const attachmentOptions: any = {
         filename: attachment.filename,
         contentType: attachment.contentType,
-      });
-
-      // If it's an inline image, add CID mapping for email clients that support it
+        knownLength: buffer.length,
+      };
       if (attachment.cid) {
-        form.append(`cid_${index}`, attachment.cid);
+        attachmentOptions.cid = attachment.cid;
+        // Optionally set disposition inline if cid is present
+        attachmentOptions.contentDisposition = 'inline';
       }
+
+      form.append(`attachment`, buffer, attachmentOptions);
     });
   }
 
@@ -43,19 +46,20 @@ export async function sendEmailHandler(
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.EMAIL_SECRET}`,
-      ...form.getHeaders(), // adds Content-Length + multipart boundary
+      ...form.getHeaders(),
     },
     body: form,
   });
 
-  // Robust parsing
   const raw = await res.text();
   let parsed: any;
-  try { 
-    parsed = JSON.parse(raw); 
-  } catch { 
-    parsed = {}; 
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = {};
   }
+
+  console.log('Email send response:', res.status, raw);
 
   return {
     success: res.ok,
@@ -63,7 +67,7 @@ export async function sendEmailHandler(
   } as const;
 }
 
-// Helper function to determine content type from file extension
+// Helper function to determine content type from filename
 export function getContentTypeFromFilename(filename: string): EmailAttachment['contentType'] {
   const ext = filename.toLowerCase().split('.').pop();
   switch (ext) {
