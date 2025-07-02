@@ -2,7 +2,7 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
-import { registerHandler } from '@/app/(model)/(auth)/(register)/registerHandler.route';
+import { registerHandler } from '@/app/(model)/(auth)/registerHandler.route';
 import { passwordStrengthCheckerAsync } from '@/utils/passwordStrengthChecker';
 
 export async function POST(request: NextRequest) {
