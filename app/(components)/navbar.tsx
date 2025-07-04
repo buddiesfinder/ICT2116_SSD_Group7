@@ -16,7 +16,7 @@ export default function Navbar({ email, role }: NavbarProps) {
           { href: '/admin', label: 'Manage Admins' },
         ]
       : []),
-    { href: '/profile', label: 'Profile' },
+    ...(email ? [{ href: '/profile', label: 'Profile' }] : []),
   ];
 
   return (
