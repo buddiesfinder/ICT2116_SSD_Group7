@@ -1,4 +1,3 @@
-// /middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -19,7 +18,7 @@ export function middleware(request: NextRequest) {
   `.replace(/\s{2,}/g, ' ').trim()
 );
 
-  response.headers.set('x-nonce', nonce); // Pass nonce to client
+  response.headers.set('x-nonce', nonce); 
   return response;
 }
 
@@ -30,6 +29,6 @@ function generateNonce(): string {
 }
 
 export const config = {
-  matcher: ["/((?!_next|favicon.ico).*)"], // Exclude static files
+  matcher: ["/((?!_next|favicon.ico).*)"], 
 };
 
