@@ -1,13 +1,13 @@
 //backend to fetch all events and insert new event
 
+export const runtime = 'nodejs';
+
 import fs from 'fs/promises';
 import path from 'path';
 import { Buffer } from 'buffer';
 import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-
-export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,6 +31,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid image' });
     }
 
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      return NextResponse.json(
+        { success: false, message: 'Unsupported file type. Only JPEG and PNG are allowed.' },
+        { status: 400 }
+      );
+    }
+
     //Check for duplicate event title
     const [existing]: any = await db.execute(
       'SELECT event_id FROM Event WHERE title = ?',
@@ -44,15 +51,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Save image to DB
-    console.log('Uploaded file:', file.name, file.type);
+    console.log('Uploaded file:', file.name, file.type, file.size);
     console.log('file:', file);
+    const mimeType = file.type;
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.execute(
-      'INSERT INTO Event (title, picture, description, location, created_at) VALUES (?, ?, ?, ?, NOW())',
-      [title, buffer, description, location]
+      'INSERT INTO Event (title, picture, mime_type, description, location, created_at) VALUES (?, ?, ?, ?, NOW())',
+      [title, buffer, mimeType, description, location]
     );
 
     const eventId = eventInsertResult.insertId;
@@ -108,6 +116,7 @@ export async function GET() {
         e.description,
         e.location,
         e.created_at,
+        e.mime_type,
         MIN(sc.price) AS lowest_price
       FROM Event e
       LEFT JOIN SeatCategory sc ON sc.event_id = e.event_id
@@ -118,13 +127,13 @@ export async function GET() {
         e.description,
         e.location,
         e.created_at
+        e.mime_type
       ORDER BY e.created_at DESC;
     `);
 
-    // Convert buffer to base64
     const events = (rows as any[]).map((event) => ({
       ...event,
-      picture: `data:image/jpeg;base64,${Buffer.from(event.picture).toString('base64')}`,
+      picture: `data:${event.mime_type};base64,${Buffer.from(event.picture).toString('base64')}`,
     }));
 
     return NextResponse.json({ success: true, events });
