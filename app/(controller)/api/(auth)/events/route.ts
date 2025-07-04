@@ -53,8 +53,6 @@ export async function POST(req: NextRequest) {
     const fileName = `${uuidv4()}.${ext}`;
     const filePath = path.join('/public', 'uploads', fileName);
 
-    const fs = require('fs');
-
     const uploadDir = '/public/uploads';
 
     if (!fs.existsSync(uploadDir)) {
