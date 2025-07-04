@@ -17,8 +17,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let email: string | null = null;
   let role: string | null = null;
 
-  const headerList = await headers();
+  const headerList = headers() as unknown as Headers;
   const nonce = headerList.get('x-nonce') || '';
+
 
 
   if (token) {

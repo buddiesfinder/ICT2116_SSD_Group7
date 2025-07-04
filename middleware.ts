@@ -30,5 +30,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: '/', // Apply to all routes
+  matcher: ['/((?!_next|favicon.ico|assets|.*\\.\\w+$).*)'],
 };
