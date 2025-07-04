@@ -1,5 +1,4 @@
 //backend to fetch all events and insert new event
-
 export const runtime = 'nodejs';
 
 import fs from 'fs/promises';
@@ -113,10 +112,10 @@ export async function GET() {
         e.event_id,
         e.title,
         e.picture,
+        e.mime_type,
         e.description,
         e.location,
         e.created_at,
-        e.mime_type,
         MIN(sc.price) AS lowest_price
       FROM Event e
       LEFT JOIN SeatCategory sc ON sc.event_id = e.event_id
@@ -124,10 +123,10 @@ export async function GET() {
         e.event_id,
         e.title,
         e.picture,
+        e.mime_type,
         e.description,
         e.location,
         e.created_at
-        e.mime_type
       ORDER BY e.created_at DESC;
     `);
 
