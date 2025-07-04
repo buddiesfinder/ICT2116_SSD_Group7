@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     const uploadDir = '/public/uploads';
 
-    await fs.mkdirSync(uploadDir, { recursive: true});
+    await fs.mkdir(uploadDir, { recursive: true});
 
     // Write the image file to disk
     await fs.promises.writeFile(filePath, buffer);
