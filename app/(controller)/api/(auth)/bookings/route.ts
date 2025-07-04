@@ -28,10 +28,10 @@ export async function GET(req: NextRequest) {
         ed.event_date,
         ed.start_time,
         ed.end_time
-      FROM SSD.Booking b
-      JOIN SSD.Event e ON b.event_id = e.event_id
-      JOIN SSD.SeatCategory ec ON b.seat_category_id = ec.seat_category_id
-      JOIN SSD.EventDate ed ON b.event_date_id = ed.event_date_id
+      FROM Booking b
+      JOIN Event e ON b.event_id = e.event_id
+      JOIN SeatCategory ec ON b.seat_category_id = ec.seat_category_id
+      JOIN EventDate ed ON b.event_date_id = ed.event_date_id
       WHERE b.user_id = ?
       ORDER BY b.booked_at DESC
     `, [user.userId]);

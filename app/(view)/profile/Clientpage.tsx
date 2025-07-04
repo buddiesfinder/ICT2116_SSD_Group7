@@ -34,9 +34,11 @@ export default function ClientProfile({
 
   const loadBookings = async () => {
     setLoading(true);
+    console.log('Loading bookings...'); // Debugging line to track function call
     try {
       const res = await fetch('/api/bookings');
       const data = await res.json();
+      console.log('Bookings data:', data); // Debugging line to check response structure
       if (data.success) {
         setBookings(data.bookings);
         setShowBookings(true);
