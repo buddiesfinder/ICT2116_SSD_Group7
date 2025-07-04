@@ -141,7 +141,7 @@ export async function GET() {
 
     const events = (rows as any[]).map((event) => ({
       ...event,
-      picture: event.picture_url, // frontend still expects `event.picture`
+      picture: event.picture, // frontend still expects `event.picture`
     }));
 
     return NextResponse.json({ success: true, events });
