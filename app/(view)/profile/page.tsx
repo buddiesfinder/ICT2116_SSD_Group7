@@ -30,10 +30,7 @@ export default async function ProfilePage() {
         email = payload.user_email ?? null;
         role  = payload.role       ?? null;
     }
-
-      email = payload.user_email ?? null;
-      role = payload.role ?? null;
-
+    
       // Get userId from JWT payload
       const userId = payload.userId;
       if (userId) {
