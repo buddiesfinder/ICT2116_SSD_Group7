@@ -54,7 +54,6 @@ export async function POST(req: NextRequest) {
     const filePath = path.join('/public', 'uploads', fileName);
 
     const fs = require('fs');
-    const path = require('path');
 
     const uploadDir = '/public/uploads';
 
