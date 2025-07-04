@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { decodeJwt } from '@/lib/jwt';
 import Navbar from './(components)/navbar'; 
 
@@ -17,11 +17,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   let email: string | null = null;
   let role: string | null = null;
 
-  const headerList = headers() as unknown as Headers;
-  const nonce = headerList.get('x-nonce') || '';
-
-
-
   if (token) {
     try {
       const { payload } = decodeJwt(token);
@@ -34,11 +29,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <head>
-          <script nonce={nonce} dangerouslySetInnerHTML={{ __html: `
-            console.log("This inline script is allowed due to matching nonce");
-          ` }} />
-      </head>
       <body className="bg-black text-white">
         <Navbar email={email} role={role} />
         <main className="p-6">{children}</main>
