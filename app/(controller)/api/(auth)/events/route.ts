@@ -115,8 +115,15 @@ export async function GET() {
         e.location,
         e.created_at
       ORDER BY e.created_at DESC;
-      `);
-    return NextResponse.json({ success: true, events: rows });
+    `);
+
+    // Convert buffer to base64
+    const events = (rows as any[]).map((event) => ({
+      ...event,
+      picture: `data:image/jpeg;base64,${Buffer.from(event.picture).toString('base64')}`,
+    }));
+
+    return NextResponse.json({ success: true, events });
   } catch (err) {
     return NextResponse.json({ success: false, message: 'Failed to fetch events' }, { status: 500 });
   }
