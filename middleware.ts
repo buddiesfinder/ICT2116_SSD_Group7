@@ -20,3 +20,8 @@ function generateNonce(): string {
   crypto.getRandomValues(array);
   return Buffer.from(array).toString('base64');
 }
+
+export const config = {
+  matcher: ["/((?!_next|favicon.ico).*)"], // Exclude static files
+};
+

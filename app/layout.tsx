@@ -33,8 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <head>
-        {/* Inject CSP nonce into meta tag (optional but useful for debugging) */}
+      <head nonce={nonce}>
         <meta name="csp-nonce" content={nonce} />
       </head>
       <body className="bg-black text-white">
