@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
     // Insert pricing for each category in SeatCategory table
     for (const category of categories) {
-      const seatLimit = seatLimitMap[category.name]  0; // fallback to 0 if unknown
+      const seatLimit = seatLimitMap[category.name] || 0; // fallback to 0 if unknown
       await db.execute(
         'INSERT INTO SeatCategory (event_id, name, price, seat_limit) VALUES (?, ?, ?, ?)',
         [eventId, category.name, category.price, seatLimit]
