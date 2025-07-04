@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
