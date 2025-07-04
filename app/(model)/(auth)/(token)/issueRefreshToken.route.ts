@@ -1,37 +1,40 @@
-// app/api/login/route.ts
-import { NextResponse }    from 'next/server'
-import { serialize }       from 'cookie'
-import { SecondLoginFactor } from '@/lib/auth/SecondLoginFactor'
+import { signJwt } from '@/lib/jwt';
 
-export async function POST(request: Request) {
-  const { userId, otp } = await request.json()
+export async function issueRefreshToken(payload: {
+  userId: string;
+  user_email: string;
+  role: string;
+  session_token: string;
+}): Promise<{
+  success: boolean;
+  message: string;
+  token?: string;
+}> {
+  try {
+     // Issue JWT Token (With Session_ID)
+    const token = signJwt({
+      // Payload 
+      userId: payload.userId,
+      user_email: payload.user_email,
+      role: payload.role,
+      session_token: payload.session_token,
+    }, 
+    // Server Secret
+    process.env.REFRESH_JWT as string, 
+    // TTL
+    { expiresIn: 7 * 24 * 60 * 60 }); // 7 days as this is the refresh token. Set token cookie name in /api/login/route.ts
+    
 
-  // 1) Perform your 2FA check & get back the token+role
-  const result = await SecondLoginFactor(userId, otp)
-  if (!result.success || !result.token) {
-    return NextResponse.json(
-      { success: false, message: result.message },
-      { status: 401 }
-    )
+    return {
+      success: true,
+      message: 'Refresh token issued successfully',
+      token,
+    };
+  } catch (error: any) {
+    console.error('Token issue error:', error);
+    return {
+      success: false,
+      message: 'Failed to issue refresh token',
+    };
   }
-
-  // 2) Create a locked-down cookie
-  const cookie = serialize('refresh_token', result.token, {
-    httpOnly:  true,
-    secure:    process.env.NODE_ENV === 'production',
-    sameSite:  'Strict',
-    path:      '/',               // only send for your app’s routes
-    domain:    'danlee.site',     // lock to your domain
-    maxAge:    7 * 24 * 60 * 60,  // 7 days in seconds
-  })
-
-  // 3) Return success and set the cookie
-  const res = NextResponse.json({
-    success: true,
-    message: 'Second factor passed, cookie set',
-    userId:  result.userId,
-    role:    result.role
-  })
-  res.headers.set('Set-Cookie', cookie)
-  return res
 }
