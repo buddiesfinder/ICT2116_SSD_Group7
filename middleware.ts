@@ -4,21 +4,16 @@ import type { NextRequest } from 'next/server';
 import crypto from 'crypto';
 
 export function middleware(request: NextRequest) {
-  // ✅ 1. Generate a per-request random nonce
   const nonce = crypto.randomBytes(16).toString('base64');
-
-  // ✅ 2. Pass the nonce via request header so layout.tsx can access it
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
 
-  // ✅ 3. Forward the request with modified headers
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
 
-  // ✅ 4. Inject CSP header with the nonce
   const csp = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}';
@@ -29,10 +24,13 @@ export function middleware(request: NextRequest) {
   `.replace(/\s{2,}/g, ' ').trim();
 
   response.headers.set('Content-Security-Policy', csp);
+  response.headers.set('x-csp-test', 'middleware-was-here'); // ✅ debug
 
   return response;
 }
 
+
 export const config = {
-  matcher: ['/((?!_next|favicon.ico|.*\\..*).*)'], // ✅ Run on all HTML routes, not static files
+  matcher: ['/((?!_next|.*\\..*|favicon.ico).*)'], 
 };
+
