@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     await fs.promises.writeFile(filePath, buffer);
 
     // Construct the public URL path
-    const imageUrl = `/uploads/${fileName}`;
+    const imageUrl = `/public/uploads/${fileName}`;
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.execute(
