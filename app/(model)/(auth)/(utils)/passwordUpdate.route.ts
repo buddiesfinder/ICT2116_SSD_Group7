@@ -23,7 +23,11 @@ export async function passwordUpdate(user_id: string, newPassword: string): Prom
         success: false,
         message: 'User not found or password unchanged',
       };
+    } else {
+      // Reset login attempts to 0 after successful password update
+      await db.execute('UPDATE User SET login_attempts = 0 WHERE user_id = ?', [user_id]);
     }
+
 
     return {
       success: true,

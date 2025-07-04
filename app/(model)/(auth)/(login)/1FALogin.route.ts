@@ -40,7 +40,7 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
     if (users[0].login_attempts >= 7) {
       return {
         success: false,
-        message: "Exceeded password reset attempts. Please Reset password."
+        message: "Exceeded Login Attempts. Please Reset password."
       }
     }
 

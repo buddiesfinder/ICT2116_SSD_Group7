@@ -59,8 +59,6 @@ export async function forgetNewPassword (
     }
 
 
-    
-
   } catch (error: any) {
     return {
       success: false,
