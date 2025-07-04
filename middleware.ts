@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
 
   response.headers.set(
     'Content-Security-Policy',
-    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self'; object-src 'none'; base-uri 'none';`
+    `default-src 'none'; script-src 'self' 'nonce-${nonce}'; style-src 'self'; object-src 'none'; base-uri 'none';`
   );
 
   response.headers.set('x-nonce', nonce); // Pass nonce to client
