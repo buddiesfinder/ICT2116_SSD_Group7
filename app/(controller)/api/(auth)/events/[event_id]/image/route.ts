@@ -3,12 +3,11 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { event_id: string } } // ✅ match your folder name!
 ) {
   try {
-    const eventId = params.id;
+    const eventId = params.event_id;
 
-    // Fetch image BLOB from DB
     const [rows]: any = await db.execute(
       'SELECT picture FROM Event WHERE event_id = ?',
       [eventId]
@@ -23,13 +22,13 @@ export async function GET(
     return new NextResponse(imageBuffer, {
       status: 200,
       headers: {
-        'Content-Type': 'image/jpeg', // Adjust if needed
+        'Content-Type': 'image/jpeg', // update if needed
         'Content-Length': imageBuffer.length.toString(),
         'Cache-Control': 'public, max-age=86400',
       },
     });
-  } catch (error) {
-    console.error('Image fetch error:', error);
+  } catch (err) {
+    console.error('Image fetch error:', err);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
