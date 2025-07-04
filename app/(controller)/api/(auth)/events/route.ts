@@ -1,34 +1,54 @@
 //backend to fetch all events and insert new event
 
-import { writeFile } from 'fs/promises';
+import formidable from 'formidable';
+import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const config = {
+  api: {
+    bodyParser: false, // Disable default body parser to handle multipart/form-data
+  },
+};
+
 export async function POST(req: NextRequest) {
+  const form = formidable({
+    multiples: false,
+    keepExtensions: true,
+  });
+
   try {
-    const formData = await req.formData();
+    const [fields, files] = await new Promise((resolve, reject) => {
+      form.parse(req.body, (err, fields, files) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve([fields, files]);
+        }
+      });
+    });
 
-    const title = formData.get('title') as string;
-    const description = formData.get('description') as string;
-    const location = formData.get('location') as string;
-    const file = formData.get('picture') as File;
+    const title = fields.title as string;
+    const description = fields.description as string;
+    const location = fields.location as string;
 
-    // Get event_dates as a JSON string then parse
-    const datesRaw = formData.get('dates') as string;
+    const datesRaw = fields.dates as string;
     const dates = JSON.parse(datesRaw); // expects [{ event_date: '2025-05-30', start_time: '18:00', end_time: '21:00' }, ...]
 
-    const categoriesRaw = formData.get('categories') as string;
+    const categoriesRaw = fields.categories as string;
     const categories = JSON.parse(categoriesRaw); // [{ category_id: 1, name: 'Premium', price: '300' }, ...]
 
-    const seatLimitMap: Record<string, number> = {Premium: 50, Standard: 100, Economy: 150};
+    const seatLimitMap: Record<string, number> = { Premium: 50, Standard: 100, Economy: 150 };
 
+
+    const file = files.picture;
     if (!file || typeof file === 'string') {
       return NextResponse.json({ success: false, message: 'Invalid image' });
     }
 
-    //Check for duplicate event title
+    // Check for duplicate event title
     const [existing]: any = await db.execute(
       'SELECT event_id FROM Event WHERE title = ?',
       [title]
@@ -40,12 +60,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save image to disk
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const filename = `${uuidv4()}-${file.name}`;
-    const filePath = path.join(process.cwd(), 'public/uploads', filename);
-    await writeFile(filePath, buffer);
+    // Read file from temporary location and write to uploads directory
+    const fileBuffer = await fs.readFile(file.filepath);
+    const filename = `${uuidv4()}-${file.originalFilename}`;
+    const uploadDir = path.join(process.cwd(), 'public/uploads');
+    const filePath = path.join(uploadDir, filename);
+
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(filePath, fileBuffer);
 
     const imageUrl = `/uploads/${filename}`;
 
