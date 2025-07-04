@@ -25,6 +25,9 @@ export default function HomeEvents() {
     const fetchEvents = async () => {
       const res = await fetch('/api/events');
       const data = await res.json();
+
+      console.log('Loaded Events:', data.events);
+
       if (data.success) setEvents(data.events);
     };
 
