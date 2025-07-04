@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'; // Your DB client
-// import bcrypt from 'bcrypt';   // Make sure to install this: npm i bcrypt
+import bcrypt from 'bcrypt';   // Make sure to install this: npm i bcrypt
+
+const SALT_ROUNDS = 10; // Cost Factor for bcrypt
 
 export async function passwordUpdate(user_id: string, newPassword: string): Promise<{
   success: boolean;
@@ -7,13 +9,12 @@ export async function passwordUpdate(user_id: string, newPassword: string): Prom
 }> {
   try {
     // Hash the new password
-    // Implement later
-    // const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updatedhashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
 
     // Update the password in the Users table
     const [result]: any = await db.execute(
       `UPDATE User SET password = ? WHERE user_id = ?`,
-      [newPassword, user_id]
+      [updatedhashedPassword, user_id]
     );
 
     // Check if update affected any rows
