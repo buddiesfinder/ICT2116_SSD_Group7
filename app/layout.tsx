@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <head nonce={nonce}>
-        <meta name="csp-nonce" content={nonce} />
+        {/* <meta name="csp-nonce" content={nonce} /> */}
       </head>
       <body className="bg-black text-white">
         <Navbar email={email} role={role} />
