@@ -14,7 +14,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookieStore = await cookies();
   const token = cookieStore.get('refresh_token')?.value;
 
-  const headerList = await headers();
+  const headerList = headers(); 
   const nonce = headerList.get('x-csp-nonce') || '';
 
   let email: string | null = null;
