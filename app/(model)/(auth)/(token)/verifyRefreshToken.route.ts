@@ -1,15 +1,15 @@
 import { NextRequest } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
 
-export async function verifyRefreshToken(request: NextRequest): Promise<{
+export async function verifyRefreshToken(refreshToken: string): Promise<{
   success: boolean;
   message: string;
   payload?: any;
 }> {
   try {
     // Extract token from cookies
-    const refreshToken = request.cookies.get('refresh_token')?.value;
-
+    // const refreshToken = request.cookies.get('refresh_token')?.value;
+    
     if (!refreshToken) {
       return {
         success: false,

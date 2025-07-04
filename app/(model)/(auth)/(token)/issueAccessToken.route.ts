@@ -2,7 +2,7 @@ import { signJwt } from '@/lib/jwt';
 import { NextRequest } from 'next/server';
 import { verifyRefreshToken } from './verifyRefreshToken.route';
 
-export async function issueRefreshToken(request: NextRequest
+export async function issueAccessToken(request: NextRequest
 ): Promise<{
   success: boolean;
   message: string;
@@ -18,7 +18,7 @@ export async function issueRefreshToken(request: NextRequest
         }
     }
 
-    const refresh_token_valid = await verifyRefreshToken(request);
+    const refresh_token_valid = await verifyRefreshToken(refresh_token);
 
     if (!refresh_token_valid.success) {
         return {

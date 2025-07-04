@@ -7,12 +7,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { newPassword } = body;
 
-    const tokenVerified = await verifyRefreshToken(request);
+    const token = await request.cookies.get('refresh_token')?.value;
+
+    if (!token) {
+       return NextResponse.json(
+        { success: false, message: "User not logged in" },
+        { status: 401 }
+      );
+    }
+
+    const tokenVerified = await verifyRefreshToken(token);
 
     if (!tokenVerified.success) {
       return NextResponse.json(
-        { success: tokenVerified.success , message: tokenVerified.message },
-        { status: 400 }
+        { success: false, message: "User not logged in" },
+        { status: 401 }
       );
     }
 

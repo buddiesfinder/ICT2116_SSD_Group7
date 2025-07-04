@@ -3,6 +3,7 @@ import { decodeJwt } from '@/lib/jwt';
 import { db } from '@/lib/db';
 import ClientPage from './Clientpage';
 import ResetPasswordPage from './ResetPasswordPage';
+import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
 export default async function ProfilePage() {
   const cookieStore = await cookies(); 
@@ -14,7 +15,22 @@ export default async function ProfilePage() {
 
   if (token) {
     try {
-      const { payload } = decodeJwt(token);
+      // const { payload } = decodeJwt(token);
+      const { success, message, payload } = await verifyRefreshToken(token);
+
+      if (!success) {
+        cookieStore.set('refresh_token', '', {
+          path: '/',
+          maxAge: 0,
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax',
+        });
+      } else if (payload) {
+        email = payload.user_email ?? null;
+        role  = payload.role       ?? null;
+    }
+
       email = payload.user_email ?? null;
       role = payload.role ?? null;
 
