@@ -52,17 +52,17 @@ export async function POST(req: NextRequest) {
     // Generate a unique filename with extension
     const ext = file.type.split('/')[1]; // "jpeg", "png", etc.
     const fileName = `${uuidv4()}.${ext}`;
-    const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
-
-    const uploadDir = '/app/public/uploads';
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    const filePath = path.join(uploadDir, fileName);
 
     await fs.mkdir(uploadDir, { recursive: true});
+    console.log('File Directory:', uploadDir);
 
     // Write the image file to disk
     await fs.writeFile(filePath, buffer);
 
     // Construct the public URL path
-    const imageUrl = `/public/uploads/${fileName}`;
+    const imageUrl = `/uploads/${fileName}`;
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.execute(
