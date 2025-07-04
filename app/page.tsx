@@ -89,7 +89,7 @@ export default function HomeEvents() {
           {filteredEvents.map((event) => (
             <div key={event.event_id} className="bg-zinc-900 rounded shadow p-4">
               <img
-                src={`/api/event/${event.event_id}/image`}
+                src={event.picture}
                 alt={event.title}
                 className="rounded mb-4 w-full max-h-96 object-contain"
               />
