@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Save image to DB
+    console.log('Uploaded file:', file.name, file.type);
     console.log('file:', file);
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
