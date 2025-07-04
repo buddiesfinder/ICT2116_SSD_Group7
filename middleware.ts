@@ -7,9 +7,17 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   response.headers.set(
-    'Content-Security-Policy',
-    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self'; object-src 'none'; base-uri 'none';`
-  );
+  'Content-Security-Policy',
+  ` default-src 'none';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
+    style-src 'self';
+    img-src 'self' data:;
+    connect-src 'self';
+    form-action 'self';
+    base-uri 'none';
+    frame-ancestors 'none';
+  `.replace(/\s{2,}/g, ' ').trim()
+);
 
   response.headers.set('x-nonce', nonce); // Pass nonce to client
   return response;
