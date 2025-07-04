@@ -1,7 +1,8 @@
 //backend to fetch all events and insert new event
 
-import { writeFile } from 'fs/promises';
+import fs from 'fs/promises';
 import path from 'path';
+import { Buffer } from 'buffer';
 import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
@@ -40,19 +41,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save image to disk
+    // Save image to DB
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const filename = `${uuidv4()}-${file.name}`;
-    const filePath = path.join(process.cwd(), 'public/uploads', filename);
-    await writeFile(filePath, buffer);
-
-    const imageUrl = `/uploads/${filename}`;
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.execute(
       'INSERT INTO Event (title, picture, description, location, created_at) VALUES (?, ?, ?, ?, NOW())',
-      [title, imageUrl, description, location]
+      [title, buffer, description, location]
     );
 
     const eventId = eventInsertResult.insertId;
