@@ -55,11 +55,14 @@ export async function POST(req: NextRequest) {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
     const filePath = path.join(uploadDir, fileName);
 
-    await fs.mkdir(uploadDir, { recursive: true});
-    console.log('File Directory:', uploadDir);
-
-    // Write the image file to disk
-    await fs.writeFile(filePath, buffer);
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      await fs.writeFile(filePath, buffer);
+      console.log('Saving file to:', filePath);
+    } catch (e) {
+      console.error('❌ Failed to write file:', e);
+      return NextResponse.json({ success: false, message: 'File write failed' }, { status: 500 });
+    }
 
     // Construct the public URL path
     const imageUrl = `/uploads/${fileName}`;
