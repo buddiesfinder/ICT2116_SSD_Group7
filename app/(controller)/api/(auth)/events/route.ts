@@ -53,6 +53,15 @@ export async function POST(req: NextRequest) {
     const fileName = `${uuidv4()}.${ext}`;
     const filePath = path.join('/public', 'uploads', fileName);
 
+    const fs = require('fs');
+    const path = require('path');
+
+    const uploadDir = '/public/uploads';
+
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true});
+    }
+
     // Write the image file to disk
     await fs.writeFile(filePath, buffer);
 
