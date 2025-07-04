@@ -1,23 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+// /middleware.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-export function middleware(_req: NextRequest) {
-  const nonce = crypto.randomBytes(16).toString('base64');
+export function middleware(request: NextRequest) {
+  const nonce = generateNonce();
+  const response = NextResponse.next();
 
-  const csp = [
-    `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' https://cdn.jsdelivr.net https:`,
-    `style-src 'self' https:`,
-    `img-src 'self' data: https:`,
-    `font-src 'self' https:`,
-    `connect-src 'self' https: wss:`,
-    `object-src 'none'`,
-    `base-uri 'none'`,
-    `frame-ancestors 'none'`
-  ].join('; ');
+  response.headers.set(
+    'Content-Security-Policy',
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self'; object-src 'none'; base-uri 'none';`
+  );
 
-  const res = NextResponse.next();
-  res.headers.set('Content-Security-Policy', csp);
-  res.headers.set('x-nonce', nonce);
-  return res;
+  response.headers.set('x-nonce', nonce); // Pass nonce to client
+  return response;
+}
+
+function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Buffer.from(array).toString('base64');
 }

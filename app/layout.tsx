@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { decodeJwt } from '@/lib/jwt';
 import Navbar from './(components)/navbar'; 
 
@@ -13,6 +13,10 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get('refresh_token')?.value;
+  
+  const headerList = await headers(); 
+  const nonce = headerList.get('x-nonce') ?? ''; 
+
 
   let email: string | null = null;
   let role: string | null = null;
@@ -30,7 +34,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <head>
-        <meta name="csp-nonce" content="" />
+        {/* Inject CSP nonce into meta tag (optional but useful for debugging) */}
+        <meta name="csp-nonce" content={nonce} />
       </head>
       <body className="bg-black text-white">
         <Navbar email={email} role={role} />
