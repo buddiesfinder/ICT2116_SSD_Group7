@@ -1,4 +1,5 @@
 //backend to fetch all events and insert new event
+export const runtime = 'nodejs'
 
 import fs from 'fs/promises';
 import path from 'path';
@@ -51,9 +52,9 @@ export async function POST(req: NextRequest) {
     // Generate a unique filename with extension
     const ext = file.type.split('/')[1]; // "jpeg", "png", etc.
     const fileName = `${uuidv4()}.${ext}`;
-    const filePath = path.join('/public', 'uploads', fileName);
+    const filePath = path.join(process.cwd(), 'public', 'uploads', fileName);
 
-    const uploadDir = '/public/uploads';
+    const uploadDir = '/app/public/uploads';
 
     await fs.mkdir(uploadDir, { recursive: true});
 
