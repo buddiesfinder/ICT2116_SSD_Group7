@@ -6,17 +6,19 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   response.headers.set(
-  'Content-Security-Policy',
-  ` default-src 'none';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
-    style-src 'self';
-    img-src 'self' data:;
-    connect-src 'self';
-    form-action 'self';
-    base-uri 'none';
-    frame-ancestors 'none';
-  `.replace(/\s{2,}/g, ' ').trim()
-);
+    'Content-Security-Policy',
+    `
+      default-src 'none';
+      script-src 'self' 'nonce-${nonce}' https://www.google.com https://www.gstatic.com;
+      style-src 'self' https://www.gstatic.com;
+      frame-src https://www.google.com;
+      connect-src 'self' https://www.google.com;
+      img-src 'self' https://www.gstatic.com data:;
+      base-uri 'none';
+      frame-ancestors 'none';
+      form-action 'self';
+    `.replace(/\s{2,}/g, ' ').trim()
+  );
 
   response.headers.set('x-nonce', nonce); 
   return response;
