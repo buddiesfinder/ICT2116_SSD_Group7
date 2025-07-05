@@ -87,6 +87,7 @@ export default function LoginPage() {
           </div>
           <div className='text-center'>
             <button 
+            type='button'
             onClick={() => {router.push("/forgot_issue_otp")}}
             className="text-center">
               <span
