@@ -19,13 +19,13 @@ export default async function ProfilePage() {
       const { success, message, payload } = await verifyRefreshToken(token);
 
       if (!success) {
-        cookieStore.set('refresh_token', '', {
-          path: '/',
-          maxAge: 0,
-          httpOnly: true,
-          secure: true,
-          sameSite: 'lax',
-        });
+
+        await fetch('/api/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+    window.location.href = '/login';
+        
       } else if (payload) {
         email = payload.user_email ?? null;
         role  = payload.role       ?? null;
