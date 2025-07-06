@@ -10,8 +10,6 @@ export async function verifyRefreshToken(refreshToken: string): Promise<{
   payload?: any;
 }> {
   try {
-    // Extract token from cookies
-    // const refreshToken = request.cookies.get('refresh_token')?.value;
     
     if (!refreshToken) {
       return {

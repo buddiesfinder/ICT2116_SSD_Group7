@@ -15,21 +15,10 @@ export default async function ProfilePage() {
 
   if (token) {
     try {
-      // const { payload } = decodeJwt(token);
-      const { success, message, payload } = await verifyRefreshToken(token);
-
-      if (!success) {
-
-        await fetch('/api/logout', {
-      method: 'POST',
-      credentials: 'include',
-    });
-    window.location.href = '/login';
-        
-      } else if (payload) {
-        email = payload.user_email ?? null;
-        role  = payload.role       ?? null;
-    }
+      const { payload } = decodeJwt(token);
+  
+      email = payload.user_email ?? null;
+      role  = payload.role       ?? null;    
     
       // Get userId from JWT payload
       const userId = payload.userId;

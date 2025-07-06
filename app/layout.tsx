@@ -26,9 +26,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     try {
       const result = await verifyRefreshToken(token);
       if (!result.success) {
-        await fetch('/api/logout', { method: 'POST' });
+        fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/logout`);
       }
-      if (result.success) {
+      else if (result.success) {
         email = result.payload.user_email ?? null;
         role = result.payload.role ?? null;
       }
