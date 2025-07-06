@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { decodeJwt } from '@/lib/jwt';
 import Navbar from './(components)/navbar'; 
+import { verifyRefreshToken } from './(model)/(auth)/(token)/verifyRefreshToken.route';
 
 export const metadata: Metadata = {
   title: 'Event Booking App',
@@ -23,9 +24,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   if (token) {
     try {
-      const { payload } = decodeJwt(token);
-      email = payload.user_email ?? null;
-      role = payload.role ?? null;
+      const result = await verifyRefreshToken(token);
+      if (!result.success) {
+        await fetch('/api/logout', { method: 'POST' });
+      }
+      if (result.success) {
+        email = result.payload.user_email ?? null;
+        role = result.payload.role ?? null;
+      }
+      
     } catch (e) {
       console.error('Invalid token', e);
     }

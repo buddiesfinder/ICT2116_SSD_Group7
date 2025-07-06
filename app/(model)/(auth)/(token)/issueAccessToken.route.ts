@@ -2,19 +2,21 @@ import { signJwt } from '@/lib/jwt';
 import { NextRequest } from 'next/server';
 import { verifyRefreshToken } from './verifyRefreshToken.route';
 
-export async function issueAccessToken(request: NextRequest
+export async function issueAccessToken(
+  refresh_token: string
+  // request: NextRequest
 ): Promise<{
   success: boolean;
   message: string;
   token?: string;
 }> {
   try {
-    const refresh_token = request.cookies.get('refresh_token')?.value;
+
 
     if (!refresh_token) {
         return {
             success: false,
-            message: "Refresh Token not found. Please Re-Login."
+            message: "Please Re-Login."
         }
     }
 
@@ -45,7 +47,6 @@ export async function issueAccessToken(request: NextRequest
       token: access_token,
     };
   } catch (error: any) {
-    console.error('Token issue error:', error);
     return {
       success: false,
       message: 'Failed to issue Access token',

@@ -1,14 +1,14 @@
 import { NextRequest } from 'next/server';
 import { decodeJwt } from '@/lib/jwt';
 
-export async function decodeRefreshToken(request: NextRequest): Promise<{
+export async function decodeRefreshToken(refreshToken: string): Promise<{
   success: boolean;
   message: string;
   payload?: any;
 }> {
   try {
     // Extract token from cookies
-    const refreshToken = request.cookies.get('refresh_token')?.value;
+    // const refreshToken = request.cookies.get('refresh_token')?.value;
 
     if (!refreshToken) {
       return {
