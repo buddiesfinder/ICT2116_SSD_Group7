@@ -31,40 +31,52 @@ export async function POST(request: NextRequest) {
 
     let totalAmount = 0;
     const bookingIds: number[] = [];
-    const validatedTickets: any[] = [];
 
+    // 1. Validate all ticket prices server-side
     for (const ticket of tickets) {
-      // Fetch actual price from DB
-      const [priceResult]: any = await db.execute(
-        `SELECT price FROM SeatCategory WHERE event_id = ? AND category_id = ?`,
-        [ticket.event_id, ticket.seat_category_id]
+      const [dbResult]: any = await db.execute(
+        `SELECT price FROM SeatCategory WHERE id = ?`,
+        [ticket.seat_category_id]
       );
 
-      const serverPrice = priceResult[0]?.price;
-      if (!serverPrice) {
+      if (!dbResult || dbResult.length === 0) {
+        return NextResponse.json({ success: false, message: 'Invalid category ID' }, { status: 400 });
+      }
+
+      const dbPrice = parseFloat(dbResult[0].price);
+      const frontendPrice = parseFloat(ticket.price);
+
+      if (dbPrice !== frontendPrice) {
+        console.warn(`Price mismatch: DB=${dbPrice}, Client=${frontendPrice}`);
         return NextResponse.json({
           success: false,
-          message: `Seat category does not exist for event ${ticket.event_id}`,
+          message: `Price mismatch for ${ticket.category_name}`
         }, { status: 400 });
       }
 
-      if (parseFloat(ticket.price) !== parseFloat(serverPrice)) {
-        return NextResponse.json({
-          success: false,
-          message: `Price mismatch detected for ${ticket.category_name}`,
-        }, { status: 400 });
-      }
+      totalAmount += dbPrice * ticket.quantity;
+    }
 
-      const amountPayable = parseFloat(serverPrice) * ticket.quantity;
-      totalAmount += amountPayable;
+    // 2. Insert transaction
+    const [transactionResult]: any = await db.execute(
+      `INSERT INTO Transaction (user_id, amount, status) VALUES (?, ?, 'unpaid')`,
+      [user_id, totalAmount]
+    );
+    const transaction_id = transactionResult.insertId;
 
-      // Check available seats
+    // 3. Insert bookings and update seats
+    for (const ticket of tickets) {
+      const amountPayable = parseFloat(ticket.price) * ticket.quantity;
+
       const [availableResult]: any = await db.execute(
-        `SELECT available_seats FROM AvailableSeats WHERE event_date_id = ? AND seat_category_id = ?`,
+        `SELECT available_seats 
+         FROM AvailableSeats 
+         WHERE event_date_id = ? AND seat_category_id = ?`,
         [event_date_id, ticket.seat_category_id]
       );
 
       const available = availableResult[0]?.available_seats ?? 0;
+
       if (available < ticket.quantity) {
         return NextResponse.json({
           success: false,
@@ -72,41 +84,37 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      // Insert booking
       const [bookingResult]: any = await db.execute(
-        `INSERT INTO Booking (transaction_id, user_id, event_id, quantity, status, amount_payable, booked_at, redeemed, seat_category_id, event_date_id)
+        `INSERT INTO Booking 
+         (transaction_id, user_id, event_id, quantity, status, amount_payable, booked_at, redeemed, seat_category_id, event_date_id)
          VALUES (?, ?, ?, ?, 'reserved', ?, NOW(), 'no', ?, ?)`,
-        [0, user_id, ticket.event_id, ticket.quantity, amountPayable, ticket.seat_category_id, event_date_id] // temporary 0 for transaction_id
+        [
+          transaction_id,
+          user_id,
+          ticket.event_id,
+          ticket.quantity,
+          amountPayable,
+          ticket.seat_category_id,
+          event_date_id,
+        ]
       );
 
       bookingIds.push(bookingResult.insertId);
-      validatedTickets.push({ ...ticket, price: parseFloat(serverPrice) });
 
       await db.execute(
-        `UPDATE AvailableSeats SET available_seats = available_seats - ? WHERE event_date_id = ? AND seat_category_id = ?`,
+        `UPDATE AvailableSeats
+         SET available_seats = available_seats - ?
+         WHERE event_date_id = ? AND seat_category_id = ?`,
         [ticket.quantity, event_date_id, ticket.seat_category_id]
       );
     }
 
-    const [transactionResult]: any = await db.execute(
-      `INSERT INTO Transaction (user_id, amount, status) VALUES (?, ?, 'unpaid')`,
-      [user_id, totalAmount]
-    );
-
-    const transaction_id = transactionResult.insertId;
-
-    // Update bookings with actual transaction_id
-    for (const bookingId of bookingIds) {
-      await db.execute(`UPDATE Booking SET transaction_id = ? WHERE booking_id = ?`, [transaction_id, bookingId]);
-    }
-
-    const line_items = validatedTickets.map((ticket) => ({
+    // 4. Create Stripe checkout session
+    const line_items = tickets.map((ticket: any) => ({
       price_data: {
         currency: 'sgd',
-        product_data: {
-          name: `${ticket.category_name} Ticket`,
-        },
-        unit_amount: ticket.price * 100,
+        product_data: { name: `${ticket.category_name} Ticket` },
+        unit_amount: Math.round(parseFloat(ticket.price) * 100), // in cents
       },
       quantity: ticket.quantity,
     }));
@@ -117,7 +125,7 @@ export async function POST(request: NextRequest) {
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success_payment`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel?transaction_id=${transaction_id}`,
-      expires_at: Math.floor(Date.now() / 1000) + 1800,
+      expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 mins
       metadata: {
         booking_ids: bookingIds.join(','),
         transaction_id: transaction_id.toString(),
@@ -125,8 +133,12 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ success: true, url: session.url });
+
   } catch (error: any) {
     console.error('Stripe Checkout Error:', error);
-    return NextResponse.json({ success: false, message: 'Something went wrong' }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      message: error.message || 'Something went wrong',
+    }, { status: 500 });
   }
 }
