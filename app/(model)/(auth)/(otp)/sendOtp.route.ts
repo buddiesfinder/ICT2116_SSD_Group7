@@ -43,7 +43,7 @@ export async function sendOtp(user_id: number): Promise<{
       const user_email = users[0].email;
       console.log('[sendOtp] Found user emal.');
       const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-      console.log('[sendOtp] Generated OTP.')
+      console.log(`[sendOtp] Generated OTP: ${otp}`);
       
       // Set user_id to Redis
       const redisKey = `${user_id}`;
