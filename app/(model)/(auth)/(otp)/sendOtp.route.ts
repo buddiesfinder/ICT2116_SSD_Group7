@@ -21,7 +21,7 @@ export async function sendOtp(user_id: number): Promise<{
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      console.log('[sendOtp] Attempt ${attempt + 1} for user ${user_id}');
+      console.log(`[sendOtp] Attempt ${attempt + 1} for user ${user_id}`);
 
       console.log('[sendOtp] Querying DB for user email...');
       const [rows] = await db.execute(
@@ -60,7 +60,7 @@ export async function sendOtp(user_id: number): Promise<{
           `Your OTP is ${otp}. \nThis will expire in 10 minutes.`
         )
       );
-      console.log('[sendOtp] Email send result: ${sendEmail.success}');
+      console.log(`[sendOtp] Email send result: ${sendEmail.success}`);
 
       if (!sendEmail.success) {
         return {
@@ -74,7 +74,7 @@ export async function sendOtp(user_id: number): Promise<{
         message: `OTP sent successfully to user ${user_id}`,
       };
     } catch (error) {
-      console.error('[sendOtp] Error on attempt ${attempt + 1}: ${error.message}');
+      console.error(`[sendOtp] Error on attempt ${attempt + 1}: ${error.message}`);
       if (attempt === maxRetries - 1) {
         return {
           success: false,
