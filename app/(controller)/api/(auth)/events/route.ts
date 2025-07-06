@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     // Generate a unique filename with extension
     const ext = file.type.split('/')[1]; // "jpeg", "png", etc.
     const fileName = `${uuidv4()}.${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    const uploadDir = path.join(process.cwd(), 'uploads');
     const filePath = path.join(uploadDir, fileName);
 
     try {
