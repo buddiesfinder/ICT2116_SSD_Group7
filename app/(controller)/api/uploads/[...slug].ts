@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import mime from 'mime';
+import { lookup } from 'mime-types';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
-  const mimeType = mime.getType(filePath) || 'application/octet-stream';
+  const mimeType = lookup(filePath) || 'application/octet-stream';
   res.setHeader('Content-Type', mimeType);
 
   const stream = fs.createReadStream(filePath);
