@@ -3,6 +3,8 @@ import { sessionInsert } from '../(session)/sessionInsert.route';
 import { verifyOtp } from '../(otp)/verifyOtp.route';
 import { issueRefreshToken } from '../(token)/issueRefreshToken.route';
 
+console.log('Login 2FA API hit!');
+
 export async function SecondLoginFactor(userId: number, otp: string): Promise<{ 
   success: boolean; 
   message: string;

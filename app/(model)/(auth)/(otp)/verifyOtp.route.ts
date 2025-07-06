@@ -1,6 +1,8 @@
 import { redisGet } from '../../(gateway)/(redis)/redisGet.route';
 import { redisDel } from '../../(gateway)/(redis)/redisDel.route';
 
+console.log('Login Redis API hit!');
+
 export async function verifyOtp(user_id: number, otp: string): Promise<{
   success: boolean;
   message: string;

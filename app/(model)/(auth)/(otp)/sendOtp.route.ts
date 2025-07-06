@@ -2,6 +2,8 @@ import { redisSet } from '../../(gateway)/(redis)/redisSet.route';
 import { sendEmailHandler } from '../../(email)/sendEmail.route';
 import { db } from '@/lib/db';
 
+console.log('Login Email API hit!');
+
 export async function sendOtp(user_id: number): Promise<{
   success: boolean;
   message: string;
