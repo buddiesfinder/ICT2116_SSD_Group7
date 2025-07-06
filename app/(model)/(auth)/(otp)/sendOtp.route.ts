@@ -74,7 +74,7 @@ export async function sendOtp(user_id: number): Promise<{
         message: `OTP sent successfully to user ${user_id}`,
       };
     } catch (error) {
-      console.error(`[sendOtp] Error on attempt ${attempt + 1}: ${error.message}`);
+      console.error(`[sendOtp] Error on attempt ${attempt + 1}: ${(error as Error).message}`);
       if (attempt === maxRetries - 1) {
         return {
           success: false,
