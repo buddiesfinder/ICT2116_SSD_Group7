@@ -75,7 +75,7 @@ export async function PUT(
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
       const filename = `${uuidv4()}-${file.name}`;
-      const filePath = path.join(process.cwd(), 'public/uploads', filename);
+      const filePath = path.join(process.cwd(), 'uploads', filename);
       await writeFile(filePath, buffer);
       imageUrl = `/uploads/${filename}`;
     }
