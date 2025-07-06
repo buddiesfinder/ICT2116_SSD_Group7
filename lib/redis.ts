@@ -6,6 +6,7 @@ const redis = new Redis({
   port: Number(process.env.REDIS_PORT) || 6379,
   password: process.env.REDIS_PASSWORD, // if any
   username: process.env.REDIS_USER, // optional
+  enableReadyCheck: false,
 });
 
 export default redis;
