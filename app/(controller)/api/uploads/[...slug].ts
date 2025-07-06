@@ -1,18 +1,27 @@
-// pages/api/uploads/[...slug].ts
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+import mime from 'mime';
 import { NextApiRequest, NextApiResponse } from 'next';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug = [] } = req.query;
-  const filePath = path.join(process.cwd(), 'uploads', ...slug);
+
+  // Ensure array
+  const slugArray = Array.isArray(slug) ? slug : [slug];
+
+  // Build absolute path
+  const filePath = path.join('/app/uploads', ...slugArray);
+
+  console.log('Serving file from:', filePath);
 
   if (!fs.existsSync(filePath)) {
     res.status(404).send('File not found');
     return;
   }
 
-  const fileStream = fs.createReadStream(filePath);
-  res.setHeader('Content-Type', 'image/*'); // or infer type dynamically
-  fileStream.pipe(res);
+  const mimeType = mime.getType(filePath) || 'application/octet-stream';
+  res.setHeader('Content-Type', mimeType);
+
+  const stream = fs.createReadStream(filePath);
+  stream.pipe(res);
 }
