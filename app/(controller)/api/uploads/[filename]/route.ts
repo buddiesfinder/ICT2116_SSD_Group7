@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { RouteHandlerContext } from 'next/dist/esm/server/future/route-modules/app-route/module';
 import fs from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
 export async function GET(
   req: NextRequest,
-  context: { params: { filename: string } }
+  context: RouteHandlerContext
 ) {
-  const { filename } = context.params;
+  const filename = context.params.filename;
   const filePath = path.join(process.cwd(), 'uploads', filename);
 
   if (!fs.existsSync(filePath)) {
