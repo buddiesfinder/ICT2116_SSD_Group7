@@ -1,92 +1,83 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
-import Stripe from 'stripe';
 import { db } from '@/lib/db';
+import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
 
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await req.json();
     const { tickets, event_date_id } = body;
 
     if (!tickets || !Array.isArray(tickets) || tickets.length === 0) {
       return NextResponse.json({ success: false, message: 'No tickets selected' }, { status: 400 });
     }
 
-    const refreshToken = request.cookies.get('refresh_token')?.value;
+    const refreshToken = req.cookies.get('refresh_token')?.value;
     if (!refreshToken) {
-      return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
+      return NextResponse.json({ success: false, message: 'Missing token' }, { status: 401 });
     }
 
     const user = verifyJwt(refreshToken, process.env.REFRESH_JWT!);
-    if (!user) {
+    if (!user?.userId) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
     }
 
     const user_id = user.userId;
-    if (!user_id) {
-      return NextResponse.json({ success: false, message: 'Missing user_id in token' }, { status: 400 });
-    }
-
     let totalAmount = 0;
-    const bookingIds: number[] = [];
 
-    // 1. Validate all ticket prices server-side
+    // Validate ticket prices from database
     for (const ticket of tickets) {
-      const [dbResult]: any = await db.execute(
-        `SELECT price FROM SeatCategory WHERE id = ?`,
+      const [res]: any = await db.execute(
+        `SELECT price FROM SeatCategory WHERE seat_category_id = ?`,
         [ticket.seat_category_id]
       );
 
-      if (!dbResult || dbResult.length === 0) {
-        return NextResponse.json({ success: false, message: 'Invalid category ID' }, { status: 400 });
-      }
-
-      const dbPrice = parseFloat(dbResult[0].price);
-      const frontendPrice = parseFloat(ticket.price);
-
-      if (dbPrice !== frontendPrice) {
-        console.warn(`Price mismatch: DB=${dbPrice}, Client=${frontendPrice}`);
+      const dbPrice = res?.[0]?.price;
+      if (dbPrice === undefined || dbPrice != ticket.price) {
         return NextResponse.json({
           success: false,
-          message: `Price mismatch for ${ticket.category_name}`
+          message: `Price mismatch for category ${ticket.category_name}`,
         }, { status: 400 });
       }
 
-      totalAmount += dbPrice * ticket.quantity;
+      totalAmount += ticket.quantity * dbPrice;
     }
 
-    // 2. Insert transaction
-    const [transactionResult]: any = await db.execute(
+    // Insert Transaction
+    const [txnRes]: any = await db.execute(
       `INSERT INTO Transaction (user_id, amount, status) VALUES (?, ?, 'unpaid')`,
       [user_id, totalAmount]
     );
-    const transaction_id = transactionResult.insertId;
+    const transaction_id = txnRes.insertId;
 
-    // 3. Insert bookings and update seats
+    const bookingIds: number[] = [];
+
+    // Create bookings and update seat availability
     for (const ticket of tickets) {
-      const amountPayable = parseFloat(ticket.price) * ticket.quantity;
-
-      const [availableResult]: any = await db.execute(
-        `SELECT available_seats 
-         FROM AvailableSeats 
+      // Check availability
+      const [availabilityRes]: any = await db.execute(
+        `SELECT available_seats FROM AvailableSeats
          WHERE event_date_id = ? AND seat_category_id = ?`,
         [event_date_id, ticket.seat_category_id]
       );
 
-      const available = availableResult[0]?.available_seats ?? 0;
-
+      const available = availabilityRes?.[0]?.available_seats ?? 0;
       if (available < ticket.quantity) {
         return NextResponse.json({
           success: false,
-          message: `Not enough seats available for ${ticket.category_name}`,
+          message: `Not enough seats for ${ticket.category_name}`,
         }, { status: 400 });
       }
 
-      const [bookingResult]: any = await db.execute(
-        `INSERT INTO Booking 
-         (transaction_id, user_id, event_id, quantity, status, amount_payable, booked_at, redeemed, seat_category_id, event_date_id)
+      const amountPayable = ticket.price * ticket.quantity;
+
+      // Insert booking
+      const [bookingRes]: any = await db.execute(
+        `INSERT INTO Booking (transaction_id, user_id, event_id, quantity, status, amount_payable, booked_at, redeemed, seat_category_id, event_date_id)
          VALUES (?, ?, ?, ?, 'reserved', ?, NOW(), 'no', ?, ?)`,
         [
           transaction_id,
@@ -95,12 +86,13 @@ export async function POST(request: NextRequest) {
           ticket.quantity,
           amountPayable,
           ticket.seat_category_id,
-          event_date_id,
+          event_date_id
         ]
       );
 
-      bookingIds.push(bookingResult.insertId);
+      bookingIds.push(bookingRes.insertId);
 
+      // Decrement availability
       await db.execute(
         `UPDATE AvailableSeats
          SET available_seats = available_seats - ?
@@ -109,36 +101,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Create Stripe checkout session
+    // Create Stripe line items
     const line_items = tickets.map((ticket: any) => ({
       price_data: {
         currency: 'sgd',
-        product_data: { name: `${ticket.category_name} Ticket` },
-        unit_amount: Math.round(parseFloat(ticket.price) * 100), // in cents
+        product_data: {
+          name: `${ticket.category_name} Ticket`,
+        },
+        unit_amount: ticket.price * 100, // cents
       },
       quantity: ticket.quantity,
     }));
 
+    // Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success_payment`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cancel?transaction_id=${transaction_id}`,
-      expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 mins
+      expires_at: Math.floor(Date.now() / 1000) + 1800, // 30 minutes
       metadata: {
         booking_ids: bookingIds.join(','),
         transaction_id: transaction_id.toString(),
+        user_id: user_id.toString(),
       },
     });
 
     return NextResponse.json({ success: true, url: session.url });
-
-  } catch (error: any) {
-    console.error('Stripe Checkout Error:', error);
+  } catch (err: any) {
+    console.error('Checkout error:', err);
     return NextResponse.json({
       success: false,
-      message: error.message || 'Something went wrong',
+      message: err.message || 'Server error during checkout',
     }, { status: 500 });
   }
 }
