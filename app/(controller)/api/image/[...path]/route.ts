@@ -11,13 +11,18 @@ export async function GET(
 ) {
   try {
     const { params } = context as { params: { path: string[] } }
-    
-    // Base directory for images (e.g. /public folder)
+
+    console.log('[Image API] Params:', params.path)
+
+    // Base directory for images
     const safeBase = path.join(process.cwd(), 'public')
     const filePath = path.join(safeBase, ...params.path)
-    
+
+    console.log('[Image API] Resolved file path:', filePath)
+
     // Prevent directory traversal
     if (!filePath.startsWith(safeBase)) {
+      console.warn('[Image API] Attempted directory traversal:', filePath)
       throw new Error('Invalid path')
     }
 
@@ -39,7 +44,7 @@ export async function GET(
       },
     })
   } catch (err) {
-    console.error('Image fetch error:', err)
+    console.error('[Image API] Image fetch error:', err)
     return new NextResponse('Image not found', { status: 404 })
   }
 }
