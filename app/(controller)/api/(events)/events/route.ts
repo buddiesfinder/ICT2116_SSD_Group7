@@ -7,6 +7,8 @@ import { Buffer } from 'buffer';
 import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { fromBuffer } from 'file-type';
+import sharp from 'sharp';
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,23 +47,53 @@ export async function POST(req: NextRequest) {
     // Save image to DB
     console.log('Uploaded file:', file.name, file.type, file.size);
     console.log('file:', file);
+    const MAX_SIZE = 5 * 1024 * 1024; // 5MB file size allowed
+    // Check image file size
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { success: false, message: 'File size too large'},
+        { status: 400 }
+      )
+    }
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Validate image file type
+    const fileType = await fromBuffer(buffer);
+    if (!fileType || !fileType.mime.startsWith('image/')) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid file type'},
+        { status: 400 }
+      )
+    }
+
+    const allowTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowTypes.includes(fileType.mime)) {
+      return NextResponse.json(
+        { success: false, message: 'Unsupported file format'},
+        { status: 400 }
+      )
+    }
+
+    // Re-encode image to strip metadata
+    const safeImageBuffer = await sharp(buffer).toBuffer();
+
     // Generate a unique filename with extension
-    const ext = file.type.split('/')[1]; // "jpeg", "png", etc.
-    const fileName = `${uuidv4()}.${ext}`;
+    const fileName = `${uuidv4()}.${fileType.ext}`;
     const uploadDir = path.join(process.cwd(), 'uploads');
     const filePath = path.join(uploadDir, fileName);
 
     try {
       await fs.mkdir(uploadDir, { recursive: true });
-      await fs.writeFile(filePath, buffer);
+      await fs.writeFile(filePath, safeImageBuffer);
       console.log('Saving file to:', filePath);
     } catch (e) {
       console.error('❌ Failed to write file:', e);
-      return NextResponse.json({ success: false, message: 'File write failed' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, message: 'File write failed' },
+        { status: 500 }
+      );
     }
 
     // Construct the public URL path

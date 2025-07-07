@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
+import { fromBuffer } from 'file-type';
+import sharp from 'sharp';
 
 type HandlerContext<T> = {
   params: Promise<T>;
@@ -72,11 +74,41 @@ export async function PUT(
     let imageUrl: string | null = null;
 
     if (file && typeof file !== 'string') {
+      const MAX_SIZE = 5 * 1024 * 1024; // 5MB file size allowed
+      // Check image file size
+      if (file.size > MAX_SIZE) {
+        return NextResponse.json(
+          { success: false, message: 'File size too large'},
+          { status: 400 }
+        )
+      }
+
+      // Validate image file type
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const filename = `${uuidv4()}-${file.name}`;
+      const fileType = await fromBuffer(buffer);
+      if (!fileType || !fileType.mime.startsWith('image/')) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid file type'},
+          { status: 400 }
+        )
+      }
+
+      const allowTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowTypes.includes(fileType.mime)) {
+        return NextResponse.json(
+          { success: false, message: 'Unsupported file format'},
+          { status: 400 }
+        )
+      }
+
+      // Re-encode image to strip metadata
+      const safeImageBuffer = await sharp(buffer).toBuffer();
+
+      // Generate a unique filename with extension
+      const filename = `${uuidv4()}-${fileType.ext}`;
       const filePath = path.join(process.cwd(), 'uploads', filename);
-      await writeFile(filePath, buffer);
+      await writeFile(filePath, safeImageBuffer);
       imageUrl = `/api/image/${filename}`;
     }
 
