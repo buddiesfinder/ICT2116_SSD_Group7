@@ -15,7 +15,7 @@ export async function GET(
     console.log('[Image API] Params:', params.path)
 
     // Base directory for images
-    const safeBase = path.join(process.cwd(), 'public')
+    const safeBase = path.join(process.cwd(), 'uploads')
     const filePath = path.join(safeBase, ...params.path)
 
     console.log('[Image API] Resolved file path:', filePath)
