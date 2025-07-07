@@ -45,7 +45,7 @@ const token = result.token!;
 const cookie = serialize('refresh_token', token, {
   httpOnly: true,                         // 🚫 JS can’t read/write
   secure:   process.env.NODE_ENV === 'production',
-  sameSite: 'Strict',                     // 🚫 CSRF
+  sameSite: 'strict',                     // 🚫 CSRF
   domain:   'danlee.site',                // ◀︎ lock to your domain
   path:     '/',                          // ◀︎ only for your app
   maxAge:   7 * 24 * 60 * 60,             // 7 days (seconds)
