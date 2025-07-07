@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
 import { db } from '@/lib/db';
 import Stripe from 'stripe';
+import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -19,12 +20,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Missing token' }, { status: 401 });
     }
 
-    const user = verifyJwt(refreshToken, process.env.REFRESH_JWT!);
-    if (!user?.userId) {
+    const {success, message, payload } = await verifyRefreshToken (refreshToken);
+
+    if (!success) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
     }
 
-    const user_id = user.userId;
+    const user_id = payload.userId;
     let totalAmount = 0;
 
     // Validate ticket prices from database

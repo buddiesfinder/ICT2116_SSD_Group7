@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
+import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,8 +10,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
     }
 
-    const user = verifyJwt(refreshToken, process.env.REFRESH_JWT!);
-    if (!user) {
+    const {success, message, payload } = await verifyRefreshToken(refreshToken);
+
+    if (!success) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
     }
     const [bookings]: any = await db.execute(`
@@ -33,7 +35,7 @@ export async function GET(req: NextRequest) {
       JOIN EventDate ed ON b.event_date_id = ed.event_date_id
       WHERE b.user_id = ?
       ORDER BY b.booked_at DESC
-    `, [user.userId]);
+    `, [payload.userId]);
 
     return NextResponse.json({ success: true, bookings });
   } catch (err) {
