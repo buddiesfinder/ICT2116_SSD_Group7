@@ -7,7 +7,7 @@ import { Buffer } from 'buffer';
 import { v4 as uuidv4 } from 'uuid';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { fromBuffer } from 'file-type';
+import { fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
 
 export async function POST(req: NextRequest) {
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Validate image file type
-    const fileType = await fromBuffer(buffer);
+    const fileType = await fileTypeFromBuffer(buffer);
     if (!fileType || !fileType.mime.startsWith('image/')) {
       return NextResponse.json(
         { success: false, message: 'Invalid file type'},

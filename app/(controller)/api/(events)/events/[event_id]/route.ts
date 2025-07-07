@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
-import { fromBuffer } from 'file-type';
+import { fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
 
 type HandlerContext<T> = {
@@ -86,7 +86,7 @@ export async function PUT(
       // Validate image file type
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const fileType = await fromBuffer(buffer);
+      const fileType = await fileTypeFromBuffer(buffer);
       if (!fileType || !fileType.mime.startsWith('image/')) {
         return NextResponse.json(
           { success: false, message: 'Invalid file type'},
