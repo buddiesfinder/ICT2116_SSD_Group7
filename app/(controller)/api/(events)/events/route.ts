@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
     const seatLimitMap: Record<string, number> = {Premium: 50, Standard: 100, Economy: 150};
 
     if (!file || typeof file === 'string') {
+      console.warn('[UPLOAD] No file received or file image is a string:', file);
       return NextResponse.json({ success: false, message: 'Invalid image' });
     }
 
@@ -50,6 +51,7 @@ export async function POST(req: NextRequest) {
     const MAX_SIZE = 5 * 1024 * 1024; // 5MB file size allowed
     // Check image file size
     if (file.size > MAX_SIZE) {
+      console.warn(`[UPLOAD] File size too large: ${file.size} bytes`);
       return NextResponse.json(
         { success: false, message: 'File size too large'},
         { status: 400 }
@@ -62,6 +64,7 @@ export async function POST(req: NextRequest) {
     // Validate image file type
     const fileType = await fileTypeFromBuffer(buffer);
     if (!fileType || !fileType.mime.startsWith('image/')) {
+      console.warn('[UPLOAD] Rejected non-image file:', fileType);
       return NextResponse.json(
         { success: false, message: 'Invalid file type'},
         { status: 400 }
@@ -70,6 +73,7 @@ export async function POST(req: NextRequest) {
 
     const allowTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowTypes.includes(fileType.mime)) {
+      console.warn('[UPLOAD] Unsupported image format:', fileType.mime);
       return NextResponse.json(
         { success: false, message: 'Unsupported file format'},
         { status: 400 }
