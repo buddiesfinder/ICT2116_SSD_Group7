@@ -2,17 +2,21 @@ import bcrypt from 'bcrypt';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { decodeJwt } from '@/lib/jwt';
+import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
 const SALT_ROUNDS = 20; // Cost Factor for bcrypt
 
 // Utility: ensure token and admin role
-async function isAdmin(req: NextRequest) {
+async function isOwner(req: NextRequest) {
   const token = req.cookies.get('refresh_token')?.value;
   if (!token) return null;
 
   try {
-    const { payload } = decodeJwt(token);
-    return payload.role === 'admin' ? payload : null;
+    const { success, message, payload } = await verifyRefreshToken(token);
+    
+    if (!success) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+
+    return payload.role === 'owner' ? payload : null;
   } catch {
     return null;
   }
@@ -20,7 +24,7 @@ async function isAdmin(req: NextRequest) {
 
 // GET /api/admin → List admins
 export async function GET(req: NextRequest) {
-  const admin = await isAdmin(req);
+  const admin = await isOwner(req);
   if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
 
   try {
@@ -34,13 +38,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: true, admins });
   } catch (err) {
     console.error('Error fetching admins:', err);
-    return NextResponse.json({ success: false, message: 'Failed to fetch admins' }, { status: 500 });
+    return NextResponse.json({ success: false, message: 'Failed to fetch owner' }, { status: 500 });
   }
 }
 
 // POST /api/admin → Create new admin
 export async function POST(req: NextRequest) {
-  const admin = await isAdmin(req);
+  const admin = await isOwner(req);
   if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
 
   try {
@@ -76,7 +80,7 @@ export async function POST(req: NextRequest) {
 
 // PUT /api/admin → Ban/unban admin
 export async function PUT(req: NextRequest) {
-  const admin = await isAdmin(req);
+  const admin = await isOwner(req);
   if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
 
   try {
