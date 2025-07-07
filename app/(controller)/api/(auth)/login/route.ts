@@ -2,6 +2,7 @@
 // and will be served at /api/login
 //backend code
 import { NextRequest, NextResponse } from 'next/server';
+import { serialize }       from 'cookie';
 import { FirstLoginFactor } from '@/app/(model)/(auth)/(login)/1FALogin.route';
 
 export async function POST(request: NextRequest) {
@@ -30,16 +31,35 @@ export async function POST(request: NextRequest) {
     // Call the login handler
     const result = await FirstLoginFactor(email, password, recaptchaToken);
 
-    // return result in http response format (with status code)
-    const response = NextResponse.json({
-    success: result.success,
-    message: result.message,
-    userId: result.userId,
-    requireRecaptcha: result.requireRecaptcha ?? false,
-  }, { status: result.success ? 200 : 401 });
+if (!result.success) {
+  return NextResponse.json(
+    { success: false, message: result.message, requireRecaptcha: result.requireRecaptcha ?? false },
+    { status: 401 }
+  );
+}
 
+// 1) SignJwt already ran inside FirstLoginFactor, which now returns `result.token`
+const token = result.token!;
 
-    return response;
+// 2) Serialize into a locked-down cookie
+const cookie = serialize('refresh_token', token, {
+  httpOnly: true,                         // 🚫 JS can’t read/write
+  secure:   process.env.NODE_ENV === 'production',
+  sameSite: 'Strict',                     // 🚫 CSRF
+  domain:   'danlee.site',                // ◀︎ lock to your domain
+  path:     '/',                          // ◀︎ only for your app
+  maxAge:   7 * 24 * 60 * 60,             // 7 days (seconds)
+});
+
+// 3) Return only status + Set-Cookie header
+const res = NextResponse.json({
+  success: true,
+  message: 'Login successful, cookie set',
+  userId:  result.userId,
+});
+res.headers.set('Set-Cookie', cookie);
+return res;
+
 
   } catch (error) {
     console.error('Login API error:', error);
