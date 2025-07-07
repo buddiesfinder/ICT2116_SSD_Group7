@@ -1,20 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import path from 'path'
 import fs from 'fs/promises'
+import path from 'path'
 
-export async function GET(req: NextRequest, { params }: { params: { path: string[] } }) {
+// This route uses fs and path, so we must run under the Node.js runtime
+export const runtime = 'nodejs'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
   try {
-    // Join relative to /app (working dir)
-    const filePath = path.join(process.cwd(), ...params.path)
+    // Prevent directory traversal by resolving against a safe base directory
+    // (e.g. your project's "public" folder)
+    const safeBase = path.join(process.cwd(), 'public')
+    const filePath = path.join(safeBase, ...params.path)
+    if (!filePath.startsWith(safeBase)) {
+      // attempted to escape the public directory
+      throw new Error('Invalid path')
+    }
 
     const fileBuffer = await fs.readFile(filePath)
     const ext = path.extname(filePath).toLowerCase()
 
     const mimeTypes: Record<string, string> = {
-      '.jpg': 'image/jpeg',
+      '.jpg':  'image/jpeg',
       '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
+      '.png':  'image/png',
+      '.gif':  'image/gif',
       '.webp': 'image/webp',
     }
 
