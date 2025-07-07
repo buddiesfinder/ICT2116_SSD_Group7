@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { serialize }                 from 'cookie'
 import { verifyJwt }                 from '@/lib/jwt'    // your HMAC-verify helper
-import crypto                        from 'crypto'
+
 
 // 1) Define which paths require admin
 const ADMIN_UI_PATH = '/admin'
