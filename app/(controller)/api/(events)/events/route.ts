@@ -9,8 +9,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
+import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
+
+// Insert Event
 export async function POST(req: NextRequest) {
+  const refreshToken = req.cookies.get('refresh_token')?.value;
+  if (!refreshToken) {
+    return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
+  }
+
+  const {success, message, payload } = await verifyRefreshToken(refreshToken);
+  
+  if (!success) {
+    return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+  }
+
+  if (payload.role !== 'admin' && payload.role !== 'owner') {
+    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+  }
   try {
     const formData = await req.formData();
 
@@ -152,6 +169,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// Gets all of events and displays
 export async function GET() {
   try {
     const [rows] = await db.execute(`
@@ -177,7 +195,7 @@ export async function GET() {
 
     const events = (rows as any[]).map((event) => ({
       ...event,
-      picture: event.picture, // frontend still expects `event.picture`
+      picture: event.picture, 
     }));
 
     return NextResponse.json({ success: true, events });
