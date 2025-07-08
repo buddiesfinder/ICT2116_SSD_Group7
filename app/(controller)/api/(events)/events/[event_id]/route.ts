@@ -5,6 +5,7 @@ import { writeFile } from 'fs/promises';
 import { v4 as uuidv4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
+import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
 type HandlerContext<T> = {
   params: Promise<T>;
@@ -18,6 +19,7 @@ export async function GET(
 ) {
   const params = await context.params;
   const event_id = params.event_id;
+
   try {
     const [eventResult]: any = await db.execute('SELECT * FROM Event WHERE event_id = ?', [event_id]);
     const [seatCategoryResult]: any = await db.execute('SELECT * FROM SeatCategory WHERE event_id = ?', [event_id]);
@@ -60,6 +62,22 @@ export async function PUT(
 ) {
   const params = await context.params;
   const event_id = params.event_id;
+
+  const refreshToken = req.cookies.get('refresh_token')?.value;
+  if (!refreshToken) {
+    return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
+  }
+
+  const {success, message, payload } = await verifyRefreshToken(refreshToken);
+  
+  if (!success) {
+    return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+  }
+
+  if (payload.role != 'admin' || payload.role != 'owner') {
+    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const formData = await req.formData();
     const title = formData.get('title') as string;
@@ -185,6 +203,21 @@ context: HandlerContext<{ event_id: string }>
 ) {
   const params = await context.params;
   const event_id = params.event_id;
+  const refreshToken = req.cookies.get('refresh_token')?.value;
+  if (!refreshToken) {
+    return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
+  }
+
+  const {success, message, payload } = await verifyRefreshToken(refreshToken);
+  
+  if (!success) {
+    return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
+  }
+
+  if (payload.role != 'admin' || payload.role != 'owner') {
+    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+  }
+  
   try {
     await db.execute('DELETE FROM EventDate WHERE event_id = ?', [event_id]);
     await db.execute('DELETE FROM Event WHERE event_id = ?', [event_id]);
