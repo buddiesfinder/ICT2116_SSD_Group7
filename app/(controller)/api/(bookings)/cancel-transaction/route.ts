@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     for (const booking of bookings) {
-      
+
       await db.execute(
         `UPDATE AvailableSeats
          SET available_seats = available_seats + ?

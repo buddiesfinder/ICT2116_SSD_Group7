@@ -25,8 +25,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Password: ", newPassword);
-
     const resetPassword = await resetNewPassword(tokenVerified.payload, newPassword);
 
     if (!resetPassword.success) {

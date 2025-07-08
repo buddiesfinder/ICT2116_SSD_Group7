@@ -1,7 +1,6 @@
 import bcrypt from 'bcrypt';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { decodeJwt } from '@/lib/jwt';
 import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 
 const SALT_ROUNDS = 20; // Cost Factor for bcrypt
