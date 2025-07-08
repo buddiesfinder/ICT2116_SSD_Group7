@@ -74,7 +74,9 @@ export async function PUT(
     return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
   }
 
-  if (payload.role != 'admin' || payload.role != 'owner') {
+  console.log("role: ", payload.role);
+
+  if (payload.role !== 'admin' && payload.role !== 'owner') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
   }
 
@@ -214,7 +216,7 @@ context: HandlerContext<{ event_id: string }>
     return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
   }
 
-  if (payload.role != 'admin' || payload.role != 'owner') {
+  if (payload.role !== 'admin' && payload.role !== 'owner') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
   }
   
