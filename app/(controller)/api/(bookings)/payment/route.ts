@@ -26,6 +26,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
     }
 
+    if (payload.role != 'procurer') {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    }
+
     const user_id = payload.userId;
     let totalAmount = 0;
 
