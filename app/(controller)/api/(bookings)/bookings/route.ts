@@ -15,6 +15,11 @@ export async function GET(req: NextRequest) {
     if (!success) {
       return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 403 });
     }
+
+    if (payload.role != 'procurer') {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    }
+    
     const [bookings]: any = await db.execute(`
       SELECT 
         b.booking_id,
