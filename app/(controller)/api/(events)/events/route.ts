@@ -170,7 +170,12 @@ export async function POST(req: NextRequest) {
 }
 
 // Gets all of events and displays
-export async function GET() {
+export async function GET(request: Request) {
+  // Check for header 'x-requested-with'
+  if (!request.headers.get('x-requested-with')) {
+    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+  }
+
   try {
     const [rows] = await db.execute(`
       SELECT 
