@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
 import sharp from 'sharp';
 import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
+import { getOneEvent } from '@/app/(model)/(event)/getOneEvent.route';
 
 type HandlerContext<T> = {
   params: Promise<T>;
@@ -21,34 +22,39 @@ export async function GET(
   const event_id = params.event_id;
 
   try {
-    const [eventResult]: any = await db.execute('SELECT * FROM Event WHERE event_id = ?', [event_id]);
-    const [seatCategoryResult]: any = await db.execute('SELECT * FROM SeatCategory WHERE event_id = ?', [event_id]);
-    const [datesResult]: any = await db.execute(
-      'SELECT event_date_id, event_date, start_time, end_time FROM EventDate WHERE event_id = ?',
-      [event_id]
-    );
+    const oneEvent = await getOneEvent(event_id);
 
-    const [availableSeats]: any = await db.execute(
-      `SELECT seat_category_id, event_date_id, available_seats
-       FROM AvailableSeats
-       WHERE event_date_id IN (
-         SELECT event_date_id FROM EventDate WHERE event_id = ?
-       )`,
-      [event_id]
-    );
+    if (!oneEvent.success) {
+    return NextResponse.json({ success: false, message: oneEvent.message }, { status: oneEvent.status });
+  }
+    // const [eventResult]: any = await db.execute('SELECT * FROM Event WHERE event_id = ?', [event_id]);
+    // const [seatCategoryResult]: any = await db.execute('SELECT * FROM SeatCategory WHERE event_id = ?', [event_id]);
+    // const [datesResult]: any = await db.execute(
+    //   'SELECT event_date_id, event_date, start_time, end_time FROM EventDate WHERE event_id = ?',
+    //   [event_id]
+    // );
 
-    const event = eventResult[0];
-    if (!event) {
-      return NextResponse.json({ success: false, message: 'Event not found' }, { status: 404 });
-    }
+    // const [availableSeats]: any = await db.execute(
+    //   `SELECT seat_category_id, event_date_id, available_seats
+    //    FROM AvailableSeats
+    //    WHERE event_date_id IN (
+    //      SELECT event_date_id FROM EventDate WHERE event_id = ?
+    //    )`,
+    //   [event_id]
+    // );
 
-    return NextResponse.json({
-      success: true,
-      event,
-      seatCategories: seatCategoryResult,
-      dates: datesResult,
-      availableSeats
-    });
+    // const event = eventResult[0];
+    // if (!event) {
+    //   return NextResponse.json({ success: false, message: 'Event not found' }, { status: 404 });
+    // }
+
+    // return NextResponse.json({
+    //   success: true,
+    //   event,
+    //   seatCategories: seatCategoryResult,
+    //   dates: datesResult,
+    //   availableSeats
+    // });
   } catch (err) {
     console.error('Error fetching event detail:', err);
     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
@@ -73,8 +79,6 @@ export async function PUT(
   if (!success) {
     return NextResponse.json({ success: false, message: 'Invalid token' }, { status: 401 });
   }
-
-  console.log("role: ", payload.role);
 
   if (payload.role !== 'admin' && payload.role !== 'owner') {
     return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
