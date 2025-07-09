@@ -27,6 +27,8 @@ export async function GET(
     if (!oneEvent.success) {
     return NextResponse.json({ success: false, message: oneEvent.message }, { status: oneEvent.status });
   }
+
+  return NextResponse.json(oneEvent)
     // const [eventResult]: any = await db.execute('SELECT * FROM Event WHERE event_id = ?', [event_id]);
     // const [seatCategoryResult]: any = await db.execute('SELECT * FROM SeatCategory WHERE event_id = ?', [event_id]);
     // const [datesResult]: any = await db.execute(
