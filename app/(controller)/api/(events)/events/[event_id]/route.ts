@@ -8,6 +8,7 @@ import sharp from 'sharp';
 import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
 import { getOneEvent } from '@/app/(model)/(event)/getOneEvent.route';
 import { updateOneEvent } from '@/app/(model)/(event)/updateOneEvent.route';
+import { deleteOneEvent } from '@/app/(model)/(event)/deleteOneEvent.route';
 
 type HandlerContext<T> = {
   params: Promise<T>;
@@ -239,9 +240,9 @@ context: HandlerContext<{ event_id: string }>
   }
   
   try {
-    await db.execute('DELETE FROM EventDate WHERE event_id = ?', [event_id]);
-    await db.execute('DELETE FROM Event WHERE event_id = ?', [event_id]);
+    await deleteOneEvent(event_id);
     return NextResponse.json({ success: true });
+    
   } catch (err) {
     console.error('Error deleting event:', err);
     return NextResponse.json({ success: false, message: 'Server error deleting event' }, { status: 500 });
