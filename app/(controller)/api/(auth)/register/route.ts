@@ -6,9 +6,9 @@ import { registerHandler } from '@/app/(model)/(auth)/(register)/registerHandler
 import { passwordStrengthCheckerAsync } from '@/utils/passwordStrengthChecker';
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await request.json();
-
-  if (!email || !password) {
+  const { email, password, name } = await request.json();
+  
+  if (!email || !password || !name) {
     return NextResponse.json({ success: false, message: 'Missing fields' }, { status: 400 });
   }
 
@@ -17,6 +17,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message }, { status: 400 });
   }
 
-  const result = await registerHandler(email, password);
+  const result = await registerHandler(email, password, name);
   return NextResponse.json({ success: result.success, message: result.message });
 }
