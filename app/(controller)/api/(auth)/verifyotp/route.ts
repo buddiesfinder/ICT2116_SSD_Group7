@@ -14,8 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await SecondLoginFactor(userId, otp);
-    console.log('LoginHandler result:', result); // debug check
-
+    
     if (!result.success) {
       return NextResponse.json(
         { success: false, message: result.message || 'Invalid OTP' },

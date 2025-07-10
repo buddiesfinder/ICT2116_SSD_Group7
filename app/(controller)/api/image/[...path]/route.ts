@@ -18,13 +18,9 @@ export async function GET(
 
     const { params } = context as { params: { path: string[] } }
 
-    console.log('[Image API] Params:', params.path);
-
     // Base directory for images
     const safeBase = path.join(process.cwd(), 'uploads');
     const filePath = path.join(safeBase, ...params.path);
-
-    console.log('[Image API] Resolved file path:', filePath);
 
     // Prevent directory traversal
     if (!filePath.startsWith(safeBase)) {
@@ -35,7 +31,6 @@ export async function GET(
     try {
       await fs.access(filePath);
     } catch (accessErr) {
-      console.error('[Image API] Access error: ', filePath, accessErr);
       throw new Error('File not found');
     }
 
