@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
 import path from 'path';
-import { writeFile } from 'fs/promises';
+import fs from 'fs/promises';
 import sharp from 'sharp';
 import { v4 as uuidv4 } from 'uuid';
 import { fileTypeFromBuffer } from 'file-type';
@@ -59,8 +59,24 @@ export async function updateOneEvent(formData: any, event_id: any) {
       // Generate a unique filename with extension
       const filename = `${uuidv4()}-${fileType.ext}`;
       const filePath = path.join(process.cwd(), 'uploads', filename);
-      await writeFile(filePath, safeImageBuffer);
+      await fs.writeFile(filePath, safeImageBuffer);
       imageUrl = filename;
+
+      // Fetch and delete old image
+      const [[event]]: any = await db.execute(
+        'SELECT picture FROM Event WHERE event_id = ?',
+        [event_id]
+      );
+
+      if (event?.picture) {
+        const oldImage = path.join(process.cwd(), 'uploads', event.picture);
+        try {
+          await fs.unlink(oldImage);
+          console.log('Deleted old image: ', oldImage);
+        } catch (err) {
+          console.warn('Failed to delete old image: ', oldImage, err);
+        }
+      }
     }
 
     if (imageUrl) {
