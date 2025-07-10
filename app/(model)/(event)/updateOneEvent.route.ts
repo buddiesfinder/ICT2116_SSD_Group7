@@ -44,7 +44,7 @@ export async function updateOneEvent(formData: any, event_id: any) {
         
       }
 
-      const allowTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      const allowTypes = ['image/jpg','image/jpeg', 'image/png', 'image/webp'];
       if (!allowTypes.includes(fileType.mime)) {
         console.warn('[UPLOAD] Unsupported image format:', fileType.mime);
         return { 
@@ -60,7 +60,7 @@ export async function updateOneEvent(formData: any, event_id: any) {
       const filename = `${uuidv4()}-${fileType.ext}`;
       const filePath = path.join(process.cwd(), 'uploads', filename);
       await writeFile(filePath, safeImageBuffer);
-      imageUrl = `/api/image/${filename}`;
+      imageUrl = filename;
     }
 
     if (imageUrl) {

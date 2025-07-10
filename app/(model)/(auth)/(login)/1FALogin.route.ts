@@ -2,8 +2,6 @@ import bcrypt from 'bcrypt';
 import { db } from '@/lib/db'; // adjust the path as needed
 import { sendOtp } from '../(otp)/sendOtp.route';
 
-console.log('1FA Login API hit!');
-
 export async function FirstLoginFactor(email: string, password: string, recaptchaToken?: string): Promise<{ 
   success: boolean; 
   message: string;

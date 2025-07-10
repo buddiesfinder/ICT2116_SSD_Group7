@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const allowTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowTypes = ['image/jpg','image/jpeg', 'image/png', 'image/webp'];
     if (!allowTypes.includes(fileType.mime)) {
       console.warn('[UPLOAD] Unsupported image format:', fileType.mime);
       return NextResponse.json(
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Construct the public URL path
-    const imageUrl = `/api/image/${fileName}`;
+    const imageUrl = fileName;
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.execute(
@@ -173,7 +173,10 @@ export async function POST(req: NextRequest) {
 export async function GET(request: Request) {
   // Check for header 'x-requested-with'
   if (!request.headers.get('x-requested-with')) {
-    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    const host = request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    const url = `${protocol}://${host}/forbidden`
+    return NextResponse.redirect(url);
   }
 
   try {

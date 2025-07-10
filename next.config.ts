@@ -5,6 +5,12 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
  poweredByHeader: false, // Disable the X-Powered-By header
+
+ api: {
+  bodyParser: {
+    sizeLimit: "5mb",
+  },
+},
   webpack: (config) => {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),

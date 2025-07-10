@@ -8,7 +8,10 @@ export async function GET(req: NextRequest) {
   try {
     const refreshToken = req.cookies.get('refresh_token')?.value;
     if (!refreshToken) {
-      return NextResponse.json({ success: false, message: 'No token' }, { status: 401 });
+      const host = req.headers.get('host');
+      const protocol = req.headers.get('x-forwarded-proto') || 'https';
+      const url = `${protocol}://${host}/forbidden`
+      return NextResponse.redirect(url);
     }
 
     const {success, message, payload } = await verifyRefreshToken(refreshToken);
