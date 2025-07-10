@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { verifyJwt } from '@/lib/jwt';
-import { decodeRefreshToken } from './decodeRefreshToken.route';
 import { db } from '@/lib/db'; // adjust the path as needed
 import { cookies } from 'next/headers';
 
