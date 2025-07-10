@@ -28,14 +28,19 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const token = request.cookies.get('refresh_token')?.value;
-
-  console.log('[MIDDLEWARE]', { pathname, token });
+  
+  const authPages = [
+    '/login',
+    '/register',
+    '/verify-otp',
+    '/forgot_issue_otp',
+    '/forgot_reset_password',
+  ];
 
   if (token) {
     const valid = await isTokenValid(token);
-    console.log('[TOKEN IS VALID?]', valid);
 
-    if ((pathname === '/login' || pathname === '/register') && valid) {
+    if (authPages.includes(pathname) && valid) {
       return NextResponse.redirect(new URL('/event', request.url));
     }
   }
