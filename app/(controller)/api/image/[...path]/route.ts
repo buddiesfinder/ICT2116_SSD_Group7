@@ -58,6 +58,6 @@ export async function GET(
     });
   } catch (err) {
     console.error('[Image API] Image fetch error:', err);
-    return NextResponse.redirect(new URL('/forbidden', req.url));
+    return NextResponse.redirect(new URL('/forbidden', req.nextUrl.origin));
   }
 }
