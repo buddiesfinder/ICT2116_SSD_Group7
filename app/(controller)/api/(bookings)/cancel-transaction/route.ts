@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
+import { cancelTransaction } from '@/app/(model)/(bookings)/cancelTransaction.route';
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,30 +30,12 @@ export async function POST(req: NextRequest) {
     );
 
     // Ensure all bookings belong to the authenticated user
-    if (!bookings.every((b: any) => b.user_id === payload.user_id)) {
+    if (!bookings.every((b: any) => b.user_id === payload.userId)) {
       return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
     }
-
-    for (const booking of bookings) {
-
-      await db.execute(
-        `UPDATE AvailableSeats
-         SET available_seats = available_seats + ?
-         WHERE seat_category_id = ? AND event_date_id = ?`,
-        [booking.quantity, booking.seat_category_id, booking.event_date_id]
-      );
-    
-    }
-
-    await db.execute(
-      `UPDATE Transaction SET status = 'cancelled' WHERE transaction_id = ? AND status = 'unpaid'`,
-      [transaction_id]
-    );
-
-    await db.execute(
-      `UPDATE Booking SET status = 'cancelled' WHERE transaction_id = ? AND status = 'reserved'`,
-      [transaction_id]
-    );
+  const cancel = await cancelTransaction(bookings, transaction_id);
+  
+  
 
     return NextResponse.json({ success: true });
   } catch (err) {

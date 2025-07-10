@@ -45,6 +45,6 @@ export async function GET(
     })
   } catch (err) {
     console.error('[Image API] Image fetch error:', err)
-    return new NextResponse('Image not found', { status: 404 })
+    return NextResponse.json({ success: false, message: 'No image.' },{ status: 400 });
   }
 }

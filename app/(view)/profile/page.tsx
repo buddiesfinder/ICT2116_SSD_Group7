@@ -4,37 +4,37 @@ import { db } from '@/lib/db';
 import ClientPage from './Clientpage';
 import ResetPasswordPage from './ResetPasswordPage';
 import { verifyRefreshToken } from '@/app/(model)/(auth)/(token)/verifyRefreshToken.route';
-
+import { redirect } from 'next/navigation';
+import { verify } from 'crypto';
 export default async function ProfilePage() {
-  const cookieStore = await cookies(); 
-  const token = cookieStore.get('refresh_token')?.value ?? null;
+  const cookieStore = cookies();
+  const token = (await cookieStore).get('refresh_token')?.value ?? null;
 
-  let email: string | null = null;
-  let role: string | null = null;
-  let name: string | null = null;
-
-  if (token) {
-    try {
-      const { payload } = decodeJwt(token);
-  
-      email = payload.user_email ?? null;
-      role  = payload.role       ?? null;    
-    
-      // Get userId from JWT payload
-      const userId = payload.userId;
-      if (userId) {
-        const [rows] = await db.execute('SELECT name FROM User WHERE user_id = ?', [userId]) as [any[], any];
-        name = rows[0]?.name ?? null;
-      }
-
-    } catch (e) {
-      console.error('Invalid token in profile page', e);
-    }
+  if (!token) {
+    redirect('/login'); // no token = not logged in
   }
 
-  return <>
-    <ClientPage email={email} role ={role} name={name}/> 
-    <ResetPasswordPage token={token}/>
-    </>;
+  const { success, payload } = await verifyRefreshToken(token);
 
+  if (!success) {
+    redirect('/login'); // invalid token
+  }
+
+  const email = payload.user_email ?? null;
+  const role = payload.role ?? null;
+
+  let name: string | null = null;
+  const userId = payload.userId;
+
+  if (userId) {
+    const [rows] = await db.execute('SELECT name FROM User WHERE user_id = ?', [userId]) as [any[], any];
+    name = rows[0]?.name ?? null;
+  }
+
+  return (
+    <>
+      <ClientPage email={email} role={role} name={name} />
+      <ResetPasswordPage token={token} />
+    </>
+  );
 }

@@ -4,44 +4,14 @@ import Stripe from 'stripe';
 import { db } from '@/lib/db';
 import QRCode from 'qrcode';
 import { sendEmailHandler } from '@/app/(model)/(email)/sendEmail.route';
+import { markPaid } from '@/app/(model)/(bookings)/markPaid.route';
+import { markExpiredAndRestoreSeats } from '@/app/(model)/(bookings)/markExpired.route';
 
 export const config = { api: { bodyParser: false } };
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-async function markPaid(transactionId: string) {
-  await db.execute(
-    `UPDATE Transaction SET status = 'paid', paid_at = NOW() WHERE transaction_id = ?`,
-    [transactionId],
-  );
-  await db.execute(
-    `UPDATE Booking SET status = 'paid' WHERE transaction_id = ?`,
-    [transactionId],
-  );
-}
-
-async function markExpiredAndRestoreSeats(transactionId: string) {
-  await db.execute(
-    `UPDATE Transaction SET status = 'expired' WHERE transaction_id = ? AND status = 'unpaid'`,
-    [transactionId],
-  );
-  const [bookings]: any = await db.execute(
-    `SELECT seat_category_id, quantity, event_date_id FROM Booking WHERE transaction_id = ?`,
-    [transactionId],
-  );
-  for (const b of bookings)
-    await db.execute(
-      `UPDATE AvailableSeats
-       SET available_seats = available_seats + ?
-       WHERE seat_category_id = ? AND event_date_id = ?`,
-      [b.quantity, b.seat_category_id, b.event_date_id],
-    );
-  await db.execute(
-    `UPDATE Booking SET status = 'expired' WHERE transaction_id = ?`,
-    [transactionId],
-  );
-}
 
 export async function POST(req: NextRequest) {
   // 1 ️⃣  Verify Stripe signature **first**. If this fails we never hit the DB.

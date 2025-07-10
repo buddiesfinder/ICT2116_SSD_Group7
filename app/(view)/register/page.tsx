@@ -10,6 +10,13 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [passwordStrength, setPasswordStrength] = useState('');
   const router = useRouter();
+  
+  function sanitizeName(name: string) {
+  return name
+    .trim()                               // remove leading/trailing spaces
+    .replace(/[^a-zA-Z\s'-]/g, '')       // allow only letters, spaces, apostrophes, hyphens
+    .slice(0, 100);                      // limit max length (optional)
+}
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +24,7 @@ export default function RegisterPage() {
 
     const res = await fetch('/api/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, name: sanitizeName(name) }),
       headers: { 'Content-Type': 'application/json' },
     });
 

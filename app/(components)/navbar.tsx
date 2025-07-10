@@ -7,10 +7,16 @@ interface NavbarProps {
 
 export default function Navbar({ email, role }: NavbarProps) {
   const isAdmin = role === 'admin';
+  const isOwner = role === 'owner';
 
   const links = [
     { href: '/', label: 'Home' },
     ...(isAdmin
+      ? [
+          { href: '/event', label: 'Manage Events' },
+        ]
+      : []),
+    ...(isOwner
       ? [
           { href: '/event', label: 'Manage Events' },
           { href: '/admin', label: 'Manage Admins' },
