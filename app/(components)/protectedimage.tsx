@@ -9,8 +9,7 @@ export default function ProtectedImage({ src, alt = '', className = '' }: { src:
     const loadImage = async () => {
       const cleanSrc = src.replace(/^\/+/, '');
       const url = `/api/image/${cleanSrc}`;
-      console.log('[ProtectedImage] Fetching:', url);
-
+  
       try {
         const res = await fetch(url, {
           headers: {
@@ -19,6 +18,7 @@ export default function ProtectedImage({ src, alt = '', className = '' }: { src:
         });
 
         console.log('[ProtectedImage] Status:', res.status);
+        
         if (!res.ok) {
           const text = await res.text();
           console.error('[ProtectedImage] Error response:', text);
