@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 
 interface OTPInputProps {
   length?: number;
@@ -25,6 +26,15 @@ function OTPInput({
   const router = useRouter();
 
   const RESEND_INTERVAL = 100; // in seconds
+
+  const searchParams = useSearchParams();
+  const from = searchParams.get('from');
+  useEffect(() => {
+    if (from !== 'login') {
+      router.push('/login');
+    }
+  }, [from, router]);
+  
 
   useEffect(() => {
     // Load userId from sessionStorage 

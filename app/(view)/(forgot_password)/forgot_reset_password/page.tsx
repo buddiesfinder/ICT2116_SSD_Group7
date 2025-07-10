@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { passwordStrengthCheckerAsync } from '@/utils/passwordStrengthChecker';
+import { useSearchParams } from 'next/navigation';
 
 // Types
 interface PasswordValidation {
@@ -127,6 +128,14 @@ export default function ResetPasswordPage() {
     showPassword: false,
     showConfirmPassword: false,
   });
+
+const searchParams = useSearchParams();
+const from = searchParams.get('from');
+useEffect(() => {
+  if (from !== 'forgot_issue_otp') {
+    router.push('/forgot-issue_otp');
+  }
+}, [from, router]);
 
   // Initialize reset token
   useEffect(() => {

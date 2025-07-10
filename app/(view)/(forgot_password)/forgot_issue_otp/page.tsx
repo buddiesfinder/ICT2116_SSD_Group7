@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
 
       if (data.success) {
         // Redirect to reset password page or handle success
-        router.push(`/forgot_reset_password`);
+        router.push(`/forgot_reset_password?from=forgot_issue_otp`);
       } 
       else {
         setOtpError(data.message || 'Invalid OTP. Please try again.');

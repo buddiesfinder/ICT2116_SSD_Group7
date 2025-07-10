@@ -43,7 +43,7 @@ export default function LoginPage() {
       if (data.success) {
         // Set SessionStorage for OTP (converts int to str)
         sessionStorage.setItem('otp_user_id', data.userId);
-        router.push('/verify-otp'); 
+        router.push('/verify-otp?from=login'); 
       } else {
         setError(data.message);
       }
