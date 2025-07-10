@@ -1,5 +1,4 @@
 import { db } from '@/lib/db'; // adjust the path as needed
-import { verifyForgotPasswordToken } from '../(token)/(forgot_password)/verifyForgotPasswordToken.route';
 import { passwordUpdate } from '../(utils)/passwordUpdate.route';
 import { sendEmailHandler } from '../../(email)/sendEmail.route';
 

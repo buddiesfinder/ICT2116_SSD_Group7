@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
         'Your Concert Ticket Confirmation',
         `<h2>🎟️  Your Ticket Purchase is Confirmed!</h2>
          <p>Thank you for your purchase. Please find your QR code below:</p>
-         <img src="cid:ticketqr" alt="QR Code" style="width:200px;height:200px;" />
          <p>Show this at the event entrance for verification.</p>`,
         [{ filename: 'ticket.png', content: qr, contentType: "image/png", encoding: 'base64', cid: 'ticketqr' }],
       );
