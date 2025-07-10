@@ -24,7 +24,12 @@ async function isOwner(req: NextRequest) {
 // GET /api/admin → List admins
 export async function GET(req: NextRequest) {
   const admin = await isOwner(req);
-  if (!admin) return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
+  if (!admin) {
+    const host = req.headers.get('host');
+    const protocol = req.headers.get('x-forwarded-proto') || 'https';
+    const url = `${protocol}://${host}/forbidden`
+    return NextResponse.redirect(url);
+  }
 
   try {
     const [admins] = await db.query(`
