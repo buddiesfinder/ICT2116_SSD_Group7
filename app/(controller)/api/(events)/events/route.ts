@@ -173,8 +173,10 @@ export async function POST(req: NextRequest) {
 export async function GET(request: Request) {
   // Check for header 'x-requested-with'
   if (!request.headers.get('x-requested-with')) {
-    console.warn("Calling from web user");
-    return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
+    const host = req.headers.get('host');
+    const protocol = req.headers.get('x-forwarded-proto') || 'https';
+    const url = `${protocol}://${host}/forbidden`
+    return NextResponse.redirect(url);
   }
 
   try {
