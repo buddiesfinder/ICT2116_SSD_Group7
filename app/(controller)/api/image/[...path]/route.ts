@@ -26,6 +26,8 @@ export async function GET(
       throw new Error('Invalid path')
     }
 
+    await fs.access(filePath);
+
     const fileBuffer = await fs.readFile(filePath)
     const ext = path.extname(filePath).toLowerCase()
 
