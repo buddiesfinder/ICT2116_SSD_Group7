@@ -27,17 +27,17 @@ function OTPInput({
   const RESEND_INTERVAL = 100; // in seconds
 
   useEffect(() => {
-    // Focus first input on mount
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
-    }
-
     // Load userId from sessionStorage 
     const storedUserId = sessionStorage.getItem('otp_user_id');
     if (storedUserId) {
       setSessionUserId(storedUserId);
-    } {
+    } else {
       router.push('/login');
+    }
+
+    // Focus first input on mount
+    if (inputRefs.current[0]) {
+      inputRefs.current[0].focus();
     }
 
     // Resend Refresh Mitigation
