@@ -133,7 +133,7 @@ const searchParams = useSearchParams();
 const from = searchParams.get('from');
 useEffect(() => {
   if (from !== 'forgot_issue_otp') {
-    router.push('/forgot-issue_otp');
+    router.push('/forgot_issue_otp');
   }
 }, [from, router]);
 
