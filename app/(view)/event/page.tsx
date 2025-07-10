@@ -56,7 +56,14 @@ export default function EventPage() {
   }, []);
 
   const fetchEvents = async () => {
-    const res = await fetch('/api/events');
+    const res = await fetch('/api/events',
+      {
+        method: 'GET',
+        headers: {
+          'x-requested-with': 'XMLHttpRequest'
+        }
+      }
+    );
     const data = await res.json();
     if (data.success) setEvents(data.events);
   };
