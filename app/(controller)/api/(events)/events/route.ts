@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const allowTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowTypes = ['image/jpg','image/jpeg', 'image/png', 'image/webp'];
     if (!allowTypes.includes(fileType.mime)) {
       console.warn('[UPLOAD] Unsupported image format:', fileType.mime);
       return NextResponse.json(
