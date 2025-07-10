@@ -8,7 +8,7 @@ async function isTokenValid(token: string): Promise<boolean> {
     await jwtVerify(token, secret); // will throw if invalid/expired
     return true;
   } catch (err) {
-    console.log('[JWT VERIFY FAILED]', err);
+   
     return false;
   }
 }
