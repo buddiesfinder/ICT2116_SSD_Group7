@@ -22,7 +22,7 @@ export async function issueRefreshToken(payload: {
     // Server Secret
     process.env.REFRESH_JWT as string, 
     // TTL
-    { expiresIn: 7 * 24 * 60 * 60 }); // 7 days as this is the refresh token. Set token cookie name in /api/login/route.ts
+    { expiresIn: 5 * 60 }); // 5 mins TTL for this is the refresh token. Set token cookie name in /api/login/route.ts
     
 
     return {
