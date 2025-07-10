@@ -1,5 +1,6 @@
 'use client';
 
+import ProtectedImage from '@/app/(components)/protectedimage';
 import { useState } from 'react';
 
 interface Booking {
@@ -132,7 +133,7 @@ export default function ClientProfile({
           <div className="grid md:grid-cols-2 gap-6">
             {bookings.map((b) => (
               <div key={b.booking_id} className="bg-zinc-900 rounded shadow p-4">
-                <img
+                <ProtectedImage
                   src={b.event_picture}
                   alt={b.event_title}
                   className="rounded mb-3 w-full max-h-60 object-contain"
