@@ -78,7 +78,7 @@ export async function sendOtp(user_id: number): Promise<{
       if (attempt === maxRetries - 1) {
         return {
           success: false,
-          message: `Failed to send OTP after ${maxRetries} attempts: ${(error as Error).message}`,
+          message: `Failed to send OTP after ${maxRetries} attempts.`,
         };
       }
     }

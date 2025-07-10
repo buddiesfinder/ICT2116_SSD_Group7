@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
 
     // Call the login handler
     const result = await FirstLoginFactor(email, password, recaptchaToken);
-
+  
+    // Removed DB Error Messages
 if (!result.success) {
   return NextResponse.json(
     { success: false, message: result.message, requireRecaptcha: result.requireRecaptcha ?? false },

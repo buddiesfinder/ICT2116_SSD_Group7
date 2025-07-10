@@ -21,22 +21,22 @@ export async function verifyForgotPasswordToken(forgot_password_token: string): 
     if (!valid) {
       return {
         success: false,
-        message: 'Invalid or expired forget_password token',
+        message: 'Invalid or expired  token',
       };
     }
 
 
     return {
       success: true,
-      message: 'Token decoded successfully',
+      message: 'Token verified successfully',
       payload: valid,
     };
 
   } catch (error: any) {
-    console.error('Token decode error:', error);
+   
     return {
       success: false,
-      message: 'Failed to decode forget_password token',
+      message: 'Failed to decode  token',
     };
   }
 }

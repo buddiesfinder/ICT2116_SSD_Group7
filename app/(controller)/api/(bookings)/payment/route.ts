@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     console.error('Checkout error:', err);
     return NextResponse.json({
       success: false,
-      message: err.message || 'Server error during checkout',
+      message: 'Server error during checkout',
     }, { status: 500 });
   }
 }

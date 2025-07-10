@@ -23,7 +23,6 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
     const users = rows as any[];
     
     if (users.length === 0) {
-      console.log('No matching user found');
       return {
         success: false,
         message: 'Invalid Email or Password'
@@ -73,7 +72,7 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
       if (!recaptchaResult.success) {
         return {
           success: false,
-          message: recaptchaResult.message || 'Recaptcha verification failed',
+          message: 'Recaptcha verification failed',
         };
       }
 
@@ -103,6 +102,7 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
       'UPDATE User SET login_attempts = 0 WHERE user_id = ?',
       [users[0].user_id]
     );
+  
     
     // Send OTP
     await sendOtp(users[0].user_id);
@@ -114,11 +114,11 @@ export async function FirstLoginFactor(email: string, password: string, recaptch
     };
     
   } catch (error: any) {
-    console.error('Login DB Error:', error);
+    
     
     return {
       success: false,
-      message: error.message
+      message: "First Factor Unsuccessful."
     };
   }
 }

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await forgetNewPassword(forgot_password_token, newPassword);
-    
+    // Customised Message
     const response = NextResponse.json({
     success: result.success,
     message: result.message
@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
     return response;
 
   } catch (error) {
-    console.error('Forget-password-reset API error:', error);
     return NextResponse.json(
       { success: false, message: 'Server error processing login' },
       { status: 500 }

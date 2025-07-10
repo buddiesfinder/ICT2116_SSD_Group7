@@ -59,8 +59,6 @@ export async function sendEmailHandler(
     parsed = {};
   }
 
-  console.log('Email send response:', res.status, raw);
-
   return {
     success: res.ok,
     message: parsed.message ?? raw.trim(),

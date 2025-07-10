@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     // Basic validation
     if (!email) {
       return NextResponse.json(
-        { success: false, message: 'Email and password are required' }, 
+        { success: false, message: 'Email Required' }, 
         { status: 400 }
       );
     }
@@ -24,6 +24,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Has customized err messages
     const result = await emailChecker(email);
 
     const response = NextResponse.json({
@@ -36,7 +38,6 @@ export async function POST(request: NextRequest) {
     return response;
 
   } catch (error) {
-    console.error('Forget-password API error:', error);
     return NextResponse.json(
       { success: false, message: 'Server error processing login' },
       { status: 500 }

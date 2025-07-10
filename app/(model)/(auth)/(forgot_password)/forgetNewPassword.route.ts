@@ -13,6 +13,7 @@ export async function forgetNewPassword (
   message: string;
 }> {
   try {
+    // customized errors
     const verifyForgetPasswordToken = await verifyForgotPasswordToken(forgot_password_token);
 
     if (!verifyForgetPasswordToken.success) {
@@ -48,14 +49,14 @@ export async function forgetNewPassword (
 
     if (!sendNotification.success) {
       return {
-        success: sendNotification.success,
-        message: sendNotification.message
+        success: false,
+        message: "Email Error."
       }
     }
 
     return {
-        success: sendNotification.success,
-        message: sendNotification.message
+        success: true,
+        message: "Forget Password Success"
     }
 
 

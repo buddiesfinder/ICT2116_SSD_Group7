@@ -21,7 +21,7 @@ export async function passwordUpdate(user_id: string, newPassword: string): Prom
     if (result.affectedRows === 0) {
       return {
         success: false,
-        message: 'User not found or password unchanged',
+        message: 'DB error.',
       };
     } else {
       // Reset login attempts to 0 after successful password update

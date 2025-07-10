@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     if (!result.success) {
       return NextResponse.json(
         { success: false, 
-          message: result.message 
+          message: "otp failed"
         },
         { status: 400 }
       );
@@ -24,15 +24,15 @@ export async function POST(request: NextRequest) {
     if (!forgotPasswordToken.success) {
       return  NextResponse.json(
         { success: false, 
-          message: forgotPasswordToken.message 
+          message: "Token Issuing Failed" 
         },
         { status: 400 }
       );
     }
 
     const response = NextResponse.json({
-    success: forgotPasswordToken.success,
-    message: forgotPasswordToken.message,
+    success: true,
+    message: "Token Issued",
     userId: result.userId
     });
 
