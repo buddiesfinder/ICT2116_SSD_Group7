@@ -62,10 +62,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Save image to DB
-    console.log('Uploaded file:', file.name, file.type, file.size);
-    console.log('file:', file);
-    const MAX_SIZE = 5 * 1024 * 1024; // 5MB file size allowed
+    // Set maximum file size to 5MB 
+    const MAX_SIZE = 5 * 1024 * 1024; 
     // Check image file size
     if (file.size > MAX_SIZE) {
       console.warn(`[UPLOAD] File size too large: ${file.size} bytes`);
@@ -108,9 +106,9 @@ export async function POST(req: NextRequest) {
     try {
       await fs.mkdir(uploadDir, { recursive: true });
       await fs.writeFile(filePath, safeImageBuffer);
-      console.log('Saving file to:', filePath);
+      console.log('File saved successfully');
     } catch (e) {
-      console.error('❌ Failed to write file:', e);
+      console.error('Failed to write file:', e);
       return NextResponse.json(
         { success: false, message: 'File write failed' },
         { status: 500 }
