@@ -2,8 +2,6 @@ import { redisSet } from '../../(gateway)/(redis)/redisSet.route';
 import { sendEmailHandler } from '../../(email)/sendEmail.route';
 import { db } from '@/lib/db';
 
-console.log('Login Email API hit!');
-
 function withTimeout<T>(promise: Promise<T>, ms = 10000): Promise<T> {
   return Promise.race([
     promise,
