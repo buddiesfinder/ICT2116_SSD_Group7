@@ -7,10 +7,10 @@ export default function ProtectedImage({ src, alt = '', className = '' }: { src:
 
   useEffect(() => {
     const loadImage = async () => {
-      const cleanSrc  = src.replace(/^\+/, '');
+      const cleanSrc = src.replace(/^\/+/, '');
       const url = `/api/image/${cleanSrc}`;
-      console.log('[Protected Image] Requesting image: ', url);
-      
+      console.log('[ProtectedImage] Fetching:', url);
+
       try {
         const res = await fetch(url, {
           headers: {
@@ -18,7 +18,12 @@ export default function ProtectedImage({ src, alt = '', className = '' }: { src:
           },
         });
 
-        if (!res.ok) throw new Error('Failed to load protected image');
+        console.log('[ProtectedImage] Status:', res.status);
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('[ProtectedImage] Error response:', text);
+          throw new Error(`Failed to fetch image: ${res.status}`);
+        }
 
         const blob = await res.blob();
         const objectUrl = URL.createObjectURL(blob);
