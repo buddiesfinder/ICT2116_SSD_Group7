@@ -1,6 +1,7 @@
 // displays a main list of events and allows adding, editing, and deleting events
 'use client';
 
+import ProtectedImage from '@/app/(components)/protectedimage';
 import { useEffect, useState } from 'react';
 
 interface Event {
@@ -237,7 +238,7 @@ export default function EventPage() {
       <div className="grid md:grid-cols-2 gap-6">
         {events.map((event) => (
           <div key={event.event_id} className="bg-zinc-900 rounded shadow p-4">
-            <img src={event.picture} alt={event.title} className="rounded mb-4 w-full max-h-96 object-contain" />
+            <ProtectedImage src={event.picture} alt={event.title} className="rounded mb-4 w-full max-h-96 object-contain" />
             <h3 className="text-xl font-semibold">{event.title}</h3>
             <p className="text-sm text-zinc-400">{event.location}</p>
             <p className="mt-2">{event.description}</p>

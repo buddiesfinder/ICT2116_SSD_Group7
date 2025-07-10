@@ -10,6 +10,12 @@ export async function GET(
   context: any
 ) {
   try {
+    const internalHeader = req.headers.get('x-internal-request');
+    if (internalHeader !== 'true') {
+      console.warn('[Image API] Blocked direct acess without x-internal-request header');
+      return NextResponse.json({ success: false, message: 'Forbidden.' },{ status: 403 })
+    }
+
     const { params } = context as { params: { path: string[] } }
 
     console.log('[Image API] Params:', params.path);
