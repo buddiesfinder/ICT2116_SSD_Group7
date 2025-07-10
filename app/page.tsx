@@ -33,9 +33,7 @@ export default function HomeEvents() {
         }
       );
       const data = await res.json();
-
-      console.log('Loaded Events:', data.events);
-
+      
       if (data.success) setEvents(data.events);
     };
 
