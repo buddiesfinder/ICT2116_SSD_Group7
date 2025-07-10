@@ -173,8 +173,8 @@ export async function POST(req: NextRequest) {
 export async function GET(request: Request) {
   // Check for header 'x-requested-with'
   if (!request.headers.get('x-requested-with')) {
-    const host = req.headers.get('host');
-    const protocol = req.headers.get('x-forwarded-proto') || 'https';
+    const host = request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
     const url = `${protocol}://${host}/forbidden`
     return NextResponse.redirect(url);
   }
