@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { getCookie } from 'cookies-next';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,13 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRecaptcha, setShowRecaptcha] = useState(false);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = getCookie('refresh_token');
+    if (token) {
+      router.replace('/event');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

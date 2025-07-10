@@ -49,7 +49,7 @@ export default function CancelPage() {
 
     if (!token) {
       // Redirect if not logged in
-      router.replace('/login');
+      router.replace('/');
       return;
     }
 
