@@ -43,7 +43,7 @@ export async function GET(
     const ext = path.extname(filePath).toLowerCase();
 
     const mimeTypes: Record<string, string> = {
-      '.jpg':  'image/jpeg',
+      '.jpg':  'image/jpg',
       '.jpeg': 'image/jpeg',
       '.png':  'image/png',
       '.gif':  'image/gif',
