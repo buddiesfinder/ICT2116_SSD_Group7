@@ -2,40 +2,40 @@
 
 import { useEffect, useState } from 'react';
 
-type Props = {
-  src: string; // relative to /uploads directory, e.g. "events/banner1.jpg"
-  alt?: string;
-  className?: string;
-};
-
-export default function ProtectedImage({ src, alt = '', className }: Props) {
+export default function ProtectedImage({ src, alt = '', className = '' }: { src: string; alt?: string; className?: string }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchImage = async () => {
+    const loadImage = async () => {
+      const cleanSrc  = src.replace(/^\+/, '');
+      const url = `/api/image/${cleanSrc}`;
+      console.log('[Protected Image] Requesting image: ', url);
+      
       try {
-        const res = await fetch(`/api/image/${src}`, {
-          headers: { 'x-internal-request': 'true' },
+        const res = await fetch(url, {
+          headers: {
+            'x-internal-request': 'true',
+          },
         });
 
-        if (!res.ok) throw new Error('Failed to load image');
+        if (!res.ok) throw new Error('Failed to load protected image');
 
         const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        setImageUrl(url);
+        const objectUrl = URL.createObjectURL(blob);
+        setImageUrl(objectUrl);
       } catch (err) {
-        console.error('[ProtectedImage] Load error:', err);
+        console.error('[ProtectedImage] Error loading image:', err);
       }
     };
 
-    fetchImage();
+    loadImage();
 
     return () => {
       if (imageUrl) URL.revokeObjectURL(imageUrl);
     };
   }, [src]);
 
-  if (!imageUrl) return <div className="bg-gray-200 animate-pulse w-full h-40" />;
+  if (!imageUrl) return <div className="bg-gray-100 animate-pulse h-40" />;
 
   return <img src={imageUrl} alt={alt} className={className} />;
 }

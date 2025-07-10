@@ -4,6 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import ProtectedImage from '@/app/(components)/protectedimage';
 
 interface Event {
   event_id: number;
@@ -155,7 +156,7 @@ export default function EventDetailPage() {
 
   return (
     <div className="p-6 text-white">
-      <img
+      <ProtectedImage
         src={event.picture}
         alt={event.title}
         className="rounded mb-4 w-full max-h-96 object-contain"
