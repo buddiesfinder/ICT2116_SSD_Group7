@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Construct the public URL path
-    const imageUrl = `/api/image/${fileName}`;
+    const imageUrl = fileName;
 
     // Insert into Event table
     const [eventInsertResult]: any = await db.execute(

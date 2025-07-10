@@ -13,7 +13,7 @@ export async function GET(
     const internalHeader = req.headers.get('x-internal-request');
     if (internalHeader !== 'true') {
       console.warn('[Image API] Blocked direct acess without x-internal-request header');
-      return NextResponse.redirect('/forbidden', 302);
+      throw new Error('Forbidden');
     }
 
     const { params } = context as { params: { path: string[] } }
@@ -58,6 +58,6 @@ export async function GET(
     });
   } catch (err) {
     console.error('[Image API] Image fetch error:', err);
-    return NextResponse.json({ success: false, message: 'No image.' },{ status: 400 });
+    return NextResponse.redirect('/forbidden', 302);
   }
 }
