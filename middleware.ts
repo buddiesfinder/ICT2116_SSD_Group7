@@ -1,5 +1,17 @@
 // middleware.ts
 import { NextRequest, NextResponse } from 'next/server'
+import { jwtVerify } from 'jose';
+
+async function isTokenValid(token: string): Promise<boolean> {
+  try {
+    const secret = new TextEncoder().encode(process.env.REFRESH_JWT!);
+    await jwtVerify(token, secret); // will throw if invalid/expired
+    return true;
+  } catch (err) {
+    console.log('[JWT VERIFY FAILED]', err);
+    return false;
+  }
+}
 
 // 1) Generate a 16-byte nonce using the Web Crypto API
 function generateNonce(): string {
@@ -12,7 +24,23 @@ function generateNonce(): string {
   return btoa(str)                          // base64-encode via browser btoa
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+
+  const pathname = request.nextUrl.pathname;
+  const token = request.cookies.get('refresh_token')?.value;
+
+  console.log('[MIDDLEWARE]', { pathname, token });
+
+  if (token) {
+    const valid = await isTokenValid(token);
+    console.log('[TOKEN IS VALID?]', valid);
+
+    if ((pathname === '/login' || pathname === '/register') && valid) {
+      return NextResponse.redirect(new URL('/event', request.url));
+    }
+  }
+
+
   // 2) Create the nonce and the response object
   const nonce = generateNonce()
   const response = NextResponse.next()
@@ -35,6 +63,7 @@ export function middleware(request: NextRequest) {
 
   // 4) Expose the nonce via a custom header if you need it in your page JS
   response.headers.set('x-nonce', nonce)
+  
 
   return response
 }
@@ -42,6 +71,9 @@ export function middleware(request: NextRequest) {
 export const config = {
   // 5) Apply to all routes except Next.js internals
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)'
-  ]
+    '/login',
+    '/register',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
+  ],
 }
+
