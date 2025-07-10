@@ -36,6 +36,8 @@ function OTPInput({
     const storedUserId = sessionStorage.getItem('otp_user_id');
     if (storedUserId) {
       setSessionUserId(storedUserId);
+    } {
+      router.push('/login');
     }
 
     // Resend Refresh Mitigation
@@ -167,6 +169,8 @@ function OTPInput({
 
       if (response.ok && data.success) {
         setIsVerified(true);
+        sessionStorage.removeItem('otp_user_id');
+        sessionStorage.removeItem('otp_resend_timestamp');
         router.refresh();
         // Update session storage with verification status (commented for Claude.ai)
         // sessionStorage.setItem('otpVerified', 'true');
@@ -188,18 +192,19 @@ function OTPInput({
   const handleResend = async (): Promise<void> => {
     
     if (!sessionUserId) {
-      setError(
-          <>
-            User session not found.{' '} Please {' '}
-            <span
-              onClick={() => router.push('/login')}
-              className="text-blue-400 hover:underline cursor-pointer"
-            >
-              Re-login
-            </span>
-            .
-          </>
-        );
+      router.push('/login');
+      // setError(
+      //     <>
+      //       User session not found.{' '} Please {' '}
+      //       <span
+      //         onClick={() => router.push('/login')}
+      //         className="text-blue-400 hover:underline cursor-pointer"
+      //       >
+      //         Re-login
+      //       </span>
+      //       .
+      //     </>
+      //   );
       return;
     }
 
